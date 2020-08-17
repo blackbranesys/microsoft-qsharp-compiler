@@ -11,7 +11,141 @@ enum QsBindingKind {
 /*
     
 */
+enum QsSpecializationKind {
+    QsBody,
+    QsAdjoint,
+    QsControlled,
+    QsControlledAdjoint
+}
+
+/*
+    
+*/
+enum QsCallableKind {
+    Operation,
+    Function,
+    TypeConstructor
+}
+
+/*
+    
+*/
+enum QsQubitScopeKind {
+    Allocate,
+    Borrow
+}
+
+/*
+    
+*/
+struct QsQualifiedName
+{
+    5: required string Namespace;
+
+    10: required string Name;
+}
+
+/*
+    
+*/
+enum SymbolTupleKind {
+    InvalidItem,
+    VariableName,
+    VariableNameTuple,
+    DiscardedItem
+}
+
+/*
+    
+*/
+struct SymbolTuple
+{
+    5: required SymbolTupleKind Kind = InvalidItem;
+
+    // TODO: Check what type might be useful for an 'InvalidItem' kind. Use string in the meantime.
+    10: nullable<string> InvalidItem = nothing;
+
+    15: nullable<string> VariableName = nothing;
+
+    20: nullable<vector<SymbolTuple>> VariableNameTuple = nothing;
+
+    // TODO: The real type of this is an ITuple object but have a placeholder in the meantime.
+    25: nullable<list<string>> DiscardedItem = nothing;
+}
+
+/*
+    
+*/
+struct QsBinding
+{
+    5: required QsBindingKind Kind = ImmutableBinding;
+
+    10: required SymbolTuple Lhs;
+
+    // TODO: The real type of this is variable (Generic 'T) but have a placeholder in the meantime.
+    15: required string Rhs;
+}
+
+/*
+    
+*/
+enum IdentifierKind {
+    LocalVariable,
+    GlobalCallable,
+    InvalidIdentifier
+}
+
+/*
+    
+*/
+struct Identifier
+{
+    5: required IdentifierKind Kind = LocalVariable;
+
+    10: nullable<string> LocalVariable = nothing;
+
+    15: nullable<QsQualifiedName> GlobalCallable = nothing;
+
+    // TODO: Check what type moigh be useful for an 'InvalidIdentifier' kind. Use string in the meantime.
+    20: nullable<string> InvalidIdentifier = nothing;
+}
+
+/*
+    
+
+    N.B. This does not exist in the F# data structures but it is required since 
+*/
+struct QsLocationOffset
+{
+    5: required int32 Line;
+
+    10: required int32 Character;
+}
+
+/*
+    
+*/
+struct QsLocation
+{
+    5: required QsLocationOffset Offset;
+}
+
+/*
+    
+*/
+struct QsNamespace
+{
+    5: required string Name;
+
+    // TODO: Finish implementing this data structure.
+}
+
+/*
+    
+*/
 struct QsCompilation
 {
-    5: required QsBindingKind BindingKind = ImmutableBinding;
+    5: required vector<QsNamespace> Namespaces;
+
+    // TODO: Finish implementing this data structure.
 }
