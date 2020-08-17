@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
-using Bond;
 using Microsoft.Quantum.QsCompiler.BuiltInRewriteSteps;
 using Microsoft.Quantum.QsCompiler.CompilationBuilder;
 using Microsoft.Quantum.QsCompiler.DataTypes;
@@ -18,7 +17,6 @@ using Microsoft.Quantum.QsCompiler.Documentation;
 using Microsoft.Quantum.QsCompiler.ReservedKeywords;
 using Microsoft.Quantum.QsCompiler.Serialization;
 using Microsoft.Quantum.QsCompiler.SyntaxTree;
-using Microsoft.Quantum.QsCompiler.SyntaxTree.Schema;
 using Microsoft.Quantum.QsCompiler.Transformations.BasicTransformations;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Newtonsoft.Json.Bson;
@@ -1001,7 +999,7 @@ namespace Microsoft.Quantum.QsCompiler
             try
             {
                 // TODO: This is where serialization happens.
-                var bondCompilation = BondExtensions.CreateBondCompilation(compilation);
+                var bondCompilation = BondSchemas.Extensions.CreateBondCompilation(compilation);
                 Json.Serializer.Serialize(writer, compilation);
             }
             catch (Exception ex)
