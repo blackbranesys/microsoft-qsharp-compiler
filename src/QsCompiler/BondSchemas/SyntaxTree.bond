@@ -113,7 +113,7 @@ struct Identifier
 /*
     
 
-    N.B. This does not exist in the F# data structures but it is required since 
+    N.B. This does not exist in the F# data structures but it is required since tuples are not supported.
 */
 struct QsLocationOffset
 {
@@ -125,9 +125,35 @@ struct QsLocationOffset
 /*
     
 */
+struct QsPositionInfo
+{
+    5: required int32 Line;
+
+    10: required int32 Column;
+}
+
+/*
+    
+
+    N.B. All uses of this data structure should be nullable.
+*/
+struct QsRangeInfo
+{
+    // TODO: The name left might not be correct for all cases.
+    5: required QsPositionInfo Left;
+
+    // TODO: The name right might not be correct for all cases.
+    10: required QsPositionInfo Right;
+}
+
+/*
+    
+*/
 struct QsLocation
 {
     5: required QsLocationOffset Offset;
+
+    10: nullable<QsRangeInfo> Range = nothing;
 }
 
 /*
