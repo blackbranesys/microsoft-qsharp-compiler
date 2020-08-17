@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\DataStructuresSchema\DataStructuresSchema.csproj" />
+    <ProjectReference Include="..\BondSchemas\BondSchemas.csproj" />
     <ProjectReference Include="..\CompilationManager\CompilationManager.csproj" />
     <ProjectReference Include="..\Optimizations\Optimizations.fsproj" />
     <ProjectReference Include="..\DocumentationParser\DocumentationParser.csproj" />

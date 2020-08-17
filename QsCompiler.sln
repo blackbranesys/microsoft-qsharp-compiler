@@ -46,7 +46,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B4A9484D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Library2", "src\QsCompiler\TestTargets\Libraries\Library2\Library2.csproj", "{E7E019AB-42F8-48AB-B80C-D33351F2C96A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataStructuresSchema", "DataStructuresSchema\DataStructuresSchema.csproj", "{AE4492D8-AA73-4370-9D72-87C8F6068BD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BondSchemas", "src\QsCompiler\BondSchemas\BondSchemas.csproj", "{AE4492D8-AA73-4370-9D72-87C8F6068BD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

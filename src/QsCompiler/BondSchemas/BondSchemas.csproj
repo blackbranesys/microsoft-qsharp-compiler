@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\QsCompiler\DataStructures\DataStructures.fsproj" />
+    <ProjectReference Include="..\DataStructures\DataStructures.fsproj" />
   </ItemGroup>
 
 </Project>
