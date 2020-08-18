@@ -135,7 +135,7 @@ struct QsPositionInfo
 /*
     
 
-    N.B. All uses of this data structure should be nullable.
+    N.B. Most uses of this data structure should be nullable.
 */
 struct QsRangeInfo
 {
@@ -350,6 +350,142 @@ struct TypedExpression
 
 }
 
+/*
+    
+*/
+enum QsInitializerKind
+{
+    SingleQubitAllocation,
+    QubitRegisterAllocation,
+    QubitTupleAllocation,
+    InvalidInitializer
+}
+
+/*
+    
+*/
+struct ResolvedInitializer
+{
+    5: required QsInitializerKind InitializerKind = InvalidInitializer;
+
+    10: required ResolvedType Resolution;
+
+    // TODO: Maybe this needs additional members depending on 'InitializerKind'.
+}
+
+/*
+    
+
+    N.B. This is similar to QsPositionInfo but have not determined whether the two fields represent Line and Column as well.
+*/
+struct PositionInfo
+{
+    5: required int32 A;
+
+    10: required int32 B;
+}
+
+/*
+    
+*/
+struct LocalVariableDeclaration
+{
+    // TODO: This is not necessarily a string, verify it later.
+    5: required string VariableName;
+
+    10: required ResolvedType Type;
+
+    15: required InferredExpressionInformation InferredInformation;
+
+    20: nullable<PositionInfo> Position = nothing;
+
+    25: required QsRangeInfo Range;
+}
+
+/*
+    
+*/
+struct LocalDeclarations
+{
+    5: required vector<LocalVariableDeclaration> Variables;
+
+    // TODO: Maybe this needs more data but not sure yet.
+}
+
+/*
+    
+*/
+struct QsValueUpdate
+{
+    5: required TypedExpression Lhs;
+
+    10: required TypedExpression Rhs;
+}
+
+/*
+    
+*/
+struct QsComments
+{
+    5: required vector<string> OpeningComments;
+
+    10: required vector<string> ClosingComments;
+}
+
+/*
+    
+*/
+enum QsStatementKind
+{
+    QsExpressionStatement,
+    QsReturnStatement,
+    QsFailStatement,
+    QsVariableDeclaration,
+    QsValueUpdate,
+    QsConditionalStatement,
+    QsForStatement,
+    QsWhileStatement,
+    QsRepeatStatement,
+    QsConjugation,
+    QsQubitScope,
+    EmptyStatement
+}
+
+/*
+    
+*/
+struct QsStatement
+{
+    5: required QsStatementKind Kind = EmptyStatement;
+
+    10: required LocalDeclarations SymbolDeclarations;
+
+    15: nullable<QsLocation> Location;
+
+    20: required QsComments Comments;
+
+    // TODO: Add fiedls depending on 'Kind'.
+}
+
+/*
+    
+*/
+enum QsLocalSymbolKind
+{
+    ValidName,
+    InvalidName
+}
+
+/*
+    
+*/
+struct QsLocalSymbol
+{
+    5: required QsLocalSymbolKind Kind = InvalidName;
+
+    // Non-null when 'Kind' is 'ValidName'.
+    10: nullable<string> Name = nothing;
+}
 
 /*
     
