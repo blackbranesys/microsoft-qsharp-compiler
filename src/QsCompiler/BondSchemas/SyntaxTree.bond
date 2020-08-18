@@ -159,6 +159,177 @@ struct QsLocation
 /*
     
 */
+struct QsTypeParameter
+{
+    5: required QsQualifiedName Origin;
+
+    10: required string TypeName;
+
+    15: nullable<QsRangeInfo> Range = nothing;
+}
+
+/*
+    
+*/
+struct UserDefinedType
+{
+    5: required string Namespace;
+
+    10: required string Name;
+
+    15: nullable<QsRangeInfo> Range = nothing;
+}
+
+/*
+    
+*/
+enum CharacteristicsKind {
+    EmptySet,
+    SimpleSet,
+    Union,
+    Intersection,
+    InvalidSetExpr
+}
+
+/*
+    
+*/
+struct ResolvedCharacteristics
+{
+    5: required CharacteristicsKind Kind = EmptySet;
+
+    // TODO: Implement per 'Kind' fields.
+}
+
+/*
+    
+*/
+struct InferredCallableInformation
+{
+    5: required bool IsSelfAdjoint;
+
+    10: required bool IsIntrinsic;
+}
+
+/*
+    
+*/
+struct CallableInformation
+{
+    5: required ResolvedCharacteristics Characteristics;
+
+    10: required InferredCallableInformation InferredInformation;
+}
+
+/*
+    
+*/
+enum QsTypeKind {
+    UnitType,
+    Int,
+    BigInt,
+    Double,
+    Bool,
+    String,
+    Qubit,
+    Result,
+    Pauli,
+    Range,
+    ArrayType,
+    TupleType,
+    UserDefinedType,
+    TypeParameter,
+    Operation,
+    Function,
+    MissingType,
+    InvalidType
+}
+
+/*
+    
+*/
+struct ResolvedType
+{
+    5: required QsTypeKind Kind = InvalidType;
+
+    // TODO: Add a field per 'Kind'.
+}
+
+/*
+    
+*/
+struct InferredExpressionInformation
+{
+    5: required bool IsMutable;
+
+    10: required bool HasLocalQuantumDependency;
+}
+
+/*
+    
+*/
+enum QsExpressionKind {
+    UnitValue,
+    Identifier,
+    ValueTuple,
+    IntLiteral,
+    BigIntLiteral,
+    DoubleLiteral,
+    BoolLiteral,
+    StringLiteral,
+    ResultLiteral,
+    PauliLiteral,
+    RangeLiteral,
+    NewArray,
+    ValueArray,
+    ArrayItem,
+    NamedItem,
+    NEG,
+    NOT,
+    BNOT,
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+    POW,
+    EQ,
+    NEQ,
+    LT,
+    LTE,
+    GT,
+    GTE,
+    AND,
+    OR,
+    BOR,
+    BAND,
+    BXOR,
+    LSHIFT,
+    RSHIFT,
+    CONDITIONAL,
+    CopyAndUpdate,
+    UnwrapApplication,
+    AdjointApplication,
+    ControlledApplication,
+    CallLikeExpression,
+    MissingExpr,
+    InvalidExpr
+}
+
+/*
+    
+*/
+struct TypedExpression
+{
+    5: required QsExpressionKind Kind = InvalidExpr;
+
+    // TODO: Finish implementing this data structure.
+}
+
+
+/*
+    
+*/
 struct QsNamespace
 {
     5: required string Name;
