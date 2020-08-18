@@ -490,6 +490,81 @@ struct QsLocalSymbol
 /*
     
 */
+struct QsDeclarationAttribute
+{
+    5: nullable<UserDefinedType> TypeId;
+
+    10: required TypedExpression Argument;
+
+    15: required PositionInfo Offset;
+
+    20: required QsComments Comments;
+}
+
+/*
+    
+*/
+struct ResolvedSignature
+{
+    5: required vector<QsLocalSymbol> TypeParameters;
+
+    10: required ResolvedType ArgumentType;
+
+    15: required ResolvedType ReturnType;
+
+    20: required CallableInformation Information;
+}
+
+/*
+    
+*/
+enum SpecializationImplementationKind
+{
+    Provided,
+    Intrinsic,
+    External,
+    Generated
+}
+
+/*
+    
+*/
+struct SpecializationImplementation
+{
+    5: required SpecializationImplementationKind Kind = Generated;
+
+    // TODO: Add a field nullable field that represents each 'Kind'.
+}
+
+/*
+    
+*/
+struct QsSpecialization
+{
+    5: required QsSpecializationKind Kind = QsBody;
+
+    10: required QsQualifiedName Parent;
+
+    15: required vector<QsDeclarationAttribute> Attributes;
+
+    20: required string SourceFile;
+
+    25: nullable<QsLocation> Location;
+
+    30: nullable<vector<ResolvedType>> TypeArguments;
+
+    35: required ResolvedSignature Signature;
+
+    40: required SpecializationImplementation Implementation;
+
+    45: required vector<string> Documentation;
+
+    50: required QsComments Comments;
+}
+
+/*
+    
+*/
 struct QsNamespace
 {
     5: required string Name;
