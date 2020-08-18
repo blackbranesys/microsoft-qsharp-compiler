@@ -319,11 +319,35 @@ enum QsExpressionKind {
 /*
     
 */
+struct TypedArgument
+{
+    5: required QsQualifiedName Callable;
+
+    10: required string Name;
+
+    15: required ResolvedType Resolution;
+
+    // TODO: Add a nullable field per expression.
+
+}
+
+/*
+    
+*/
 struct TypedExpression
 {
     5: required QsExpressionKind Kind = InvalidExpr;
 
-    // TODO: Finish implementing this data structure.
+    10: required vector<TypedArgument> TypedArguments;
+
+    15: required ResolvedType Resolution;
+
+    20: required InferredExpressionInformation InferredInformation;
+
+    25: nullable<QsRangeInfo> Range;
+
+    // TODO: Add a nullable field per expression.
+
 }
 
 
