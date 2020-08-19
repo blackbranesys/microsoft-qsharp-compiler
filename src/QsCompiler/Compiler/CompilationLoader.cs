@@ -11,7 +11,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using Bond;
-using Bond.IO.Safe;
 using Bond.IO.Unsafe;
 using Bond.Protocols;
 using Microsoft.Quantum.QsCompiler.BuiltInRewriteSteps;
@@ -1013,8 +1012,11 @@ namespace Microsoft.Quantum.QsCompiler
                 var serializerCreationWatch = Stopwatch.StartNew();
                 var bondStream = new MemoryStream();
                 var bondOutputStream = new OutputStream(bondStream);
-                var fastSerializer = new Serializer<SimpleBinaryWriter<OutputStream>>(typeof(BondSchemas.QsCompilation));
-                var fastBinaryWriter = new SimpleBinaryWriter<OutputStream>(bondOutputStream);
+                var bondOutputBuffer = new Bond.IO.Unsafe.OutputBuffer(2 * 1024);
+                var fastSerializer = new Serializer<SimpleBinaryWriter<Bond.IO.Unsafe.OutputBuffer>>(typeof(BondSchemas.QsCompilation));
+                //var fastSerializer = new Serializer<FastBinaryWriter<OutputStream>>(typeof(BondSchemas.QsCompilation));
+                var fastBinaryWriter = new SimpleBinaryWriter<Bond.IO.Unsafe.OutputBuffer>(bondOutputBuffer);
+                //var fastBinaryWriter = new FastBinaryWriter<OutputStream>(bondOutputStream);
                 serializerCreationWatch.Stop();
                 Console.WriteLine($">> FAST SERIALIZATION WRITER CREATION END: {serializerCreationWatch.ElapsedTicks} ticks");
 
@@ -1036,13 +1038,16 @@ namespace Microsoft.Quantum.QsCompiler
 
                 Console.WriteLine(">> FAST DESERIALIZATION READER CREATION START");
                 var deserializerCreationWatch = Stopwatch.StartNew();
-                var fastDeserializer = new Deserializer<SimpleBinaryReader<InputStream>>(typeof(BondSchemas.QsCompilation));
-                var readerStream = new InputStream(bondStream);
-                var reader = new SimpleBinaryReader<InputStream>(readerStream);
+                var fastDeserializer = new Deserializer<SimpleBinaryReader<Bond.IO.Unsafe.InputBuffer>>(typeof(BondSchemas.QsCompilation));
+                //var fastDeserializer = new Deserializer<FastBinaryReader<InputStream>>(typeof(BondSchemas.QsCompilation));
+                var inputBuffer = new Bond.IO.Unsafe.InputBuffer(bondOutputBuffer.Data);
+                //var inputStream = new InputStream(bondStream);
+                var reader = new SimpleBinaryReader<Bond.IO.Unsafe.InputBuffer>(inputBuffer);
+                //var reader = new FastBinaryReader<InputStream>(inputStream);
                 deserializerCreationWatch.Stop();
                 Console.WriteLine($">> FAST DESERIALIZATION READER CREATION END: {deserializerCreationWatch.ElapsedTicks} ticks");
 
-                Console.WriteLine(">> FAST DESERIALIZATION START");
+                Console.WriteLine($">> FAST DESERIALIZATION START");
                 var fastDeserializationWatch = Stopwatch.StartNew();
                 var dst = fastDeserializer.Deserialize<BondSchemas.QsCompilation>(reader);
                 fastDeserializationWatch.Stop();
@@ -1055,11 +1060,14 @@ namespace Microsoft.Quantum.QsCompiler
                 Console.WriteLine($">> CURRENT SERIALIZATION END: {currentSerializationWatch.ElapsedTicks} ticks");
 
                 MemoryStream copyMs = new MemoryStream();
+                ms.Position = 0;
                 ms.CopyTo(copyMs);
+                copyMs.Flush();
+                copyMs.Position = 0;
                 Console.WriteLine(">> CURRENT DESERIALIZATION START");
                 var currentDeserializationWatch = Stopwatch.StartNew();
                 using var newtonSoftReader = new BsonDataReader(copyMs);
-                compilation = Json.Serializer.Deserialize<QsCompilation>(newtonSoftReader);
+                var deserializedCompilation = Json.Serializer.Deserialize<QsCompilation>(newtonSoftReader);
                 currentDeserializationWatch.Stop();
                 Console.WriteLine($">> CURRENT DESERIALIZATION END: {currentDeserializationWatch.ElapsedTicks} ticks");
             }
