@@ -4,11 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Bond;
+using Bond.IO.Safe;
+using Bond.Protocols;
 using Microsoft.Quantum.QsCompiler.BuiltInRewriteSteps;
 using Microsoft.Quantum.QsCompiler.CompilationBuilder;
 using Microsoft.Quantum.QsCompiler.DataTypes;
@@ -999,8 +1003,24 @@ namespace Microsoft.Quantum.QsCompiler
             try
             {
                 // TODO: This is where serialization happens.
-                var bondCompilation = BondSchemas.Extensions.CreateBondCompilation(compilation);
+                var fastSerializer = new Serializer<FastBinaryWriter<OutputBuffer>>(typeof(BondSchemas.QsCompilation));
+                var output = new OutputBuffer();
+                var fastBinaryWriter = new FastBinaryWriter<OutputBuffer>(output);
+                Console.WriteLine(">> FAST SERIALIZATION START");
+                var bondTranslationWatch = Stopwatch.StartNew();
+                var bondQsCompilation = BondSchemas.Extensions.CreateBondCompilation(compilation);
+                bondTranslationWatch.Stop();
+                var fastSerializationWatch = Stopwatch.StartNew();
+                fastSerializer.Serialize(bondQsCompilation, fastBinaryWriter);
+                fastSerializationWatch.Stop();
+                Console.WriteLine($">> FAST SERIALIZATION END: {bondTranslationWatch.ElapsedTicks}, {fastSerializationWatch.ElapsedTicks} ticks");
+
+                var exampleDeserializer = new Deserializer<CompactBinaryReader<InputBuffer>>(typeof(BondSchemas.QsCompilation));
+                Console.WriteLine(">> CURRENT SERIALIZATION START");
+                var currentSerializationWatch = Stopwatch.StartNew();
                 Json.Serializer.Serialize(writer, compilation);
+                currentSerializationWatch.Stop();
+                Console.WriteLine($">> CURRENT SERIALIZATION END: {currentSerializationWatch.ElapsedTicks} ticks");
             }
             catch (Exception ex)
             {

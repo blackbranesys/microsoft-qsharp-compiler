@@ -768,6 +768,14 @@ type QsNamespaceElement =
         match this with
         | QsCallable call -> call.FullName
         | QsCustomType typ -> typ.FullName
+    member this.TryGetCallable(callable: QsCallable byref) =
+        match this with
+        | QsCallable value -> callable <- value; true
+        | _ -> false
+    member this.TryGetCustomType(customType: QsCustomType byref) =
+        match this with
+        | QsCustomType value -> customType <- value; true
+        | _ -> false
 
 
 /// Describes a Q# namespace.
