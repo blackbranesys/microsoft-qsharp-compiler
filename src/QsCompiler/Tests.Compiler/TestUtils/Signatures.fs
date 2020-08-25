@@ -61,7 +61,7 @@ let _MakeTypeParam originNs originName paramName =
 
 /// For all given namespaces in checkedNamespaces, checks that there are exactly
 /// the callables specified with targetSignatures in the given compilation.
-let public SignatureCheck checkedNamespaces targetSignatures compilation =
+let public SignatureCheck checkedNamespaces targetSignatures (compilation : QsCompilation)=
 
     let getNs targetNs =
         match Seq.tryFind (fun (ns : QsNamespace) -> ns.Name.Value = targetNs) compilation.Namespaces with

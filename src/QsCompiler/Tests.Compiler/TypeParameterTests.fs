@@ -93,14 +93,14 @@ type TypeParameterTests () =
         Assert.NotNull processedCompilation
         processedCompilation
 
-    let GetCallableWithName compilation ns name =
+    let GetCallableWithName (compilation : QsCompilation) ns name =
         compilation.Namespaces
         |> Seq.filter (fun x -> x.Name.Value = ns)
         |> GlobalCallableResolutions
         |> Seq.find (fun x -> x.Key.Name.Value = name)
         |> (fun x -> x.Value)
 
-    let GetMainExpression (compilation : QsCompilation) =
+    let GetMainExpression compilation =
         let mainCallable = GetCallableWithName compilation TypeParameterNS "Main"
         let body =
             mainCallable.Specializations

@@ -894,7 +894,7 @@ namespace Microsoft.Quantum.QsCompiler.CompilationBuilder
                     this.CachedCallGraph = QsNullable<ICallGraph>.NewValue(Transformations.CallGraphWalker.BuildCallGraph.Apply(taggedCallables));
                 }
 
-                return new QsCompilation(tree, entryPoints.ToImmutable(), this.CachedCallGraph);
+                return QsCompilation.New(tree, entryPoints.ToImmutable(), this.CachedCallGraph);
             }
             finally
             {

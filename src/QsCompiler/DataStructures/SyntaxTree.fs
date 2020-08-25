@@ -819,13 +819,33 @@ type ICallGraph =
     abstract member VerifyAllCycles : Unit -> System.Collections.Generic.IEnumerable<NonNullable<string> * QsCompilerDiagnostic>
 
 /// Describes a compiled Q# library or executable.
-type QsCompilation = {
-    /// Contains all compiled namespaces
-    Namespaces : ImmutableArray<QsNamespace>
+type QsCompilation = private {
+    _compilationId : Guid
+    _namespaces : ImmutableArray<QsNamespace>
+    _entryPoints : ImmutableArray<QsQualifiedName>
+    _callGraph : QsNullable<ICallGraph>
+}
+with
+
+    /// Creates a new QsCompilation object.
+    static member New (namespaces, entryPoints, callGraph) = {
+        _compilationId = Guid.NewGuid()
+        _namespaces = namespaces
+        _entryPoints = entryPoints
+        _callGraph = callGraph
+    }
+
+    /// Unique id for this compilation.
+    /// Generated for each new QsCompilation.
+    member this.Id : Guid = this._compilationId
+    
+    /// Contains all compiled namespaces.
+    member this.Namespaces : ImmutableArray<QsNamespace> = this._namespaces
+    
     /// Contains the names of all entry points of the compilation.
     /// In the case of a library the array is empty.
-    EntryPoints : ImmutableArray<QsQualifiedName>
+    member this.EntryPoints : ImmutableArray<QsQualifiedName> = this._entryPoints
+    
     /// Contains the Call Graph for the compilation.
     /// Null if no call graph has been generated.
-    CallGraph : QsNullable<ICallGraph>
-}
+    member this.CallGraph : QsNullable<ICallGraph> = this._callGraph

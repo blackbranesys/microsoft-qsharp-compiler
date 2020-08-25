@@ -3,6 +3,7 @@
 
 module Microsoft.Quantum.QsCompiler.SyntaxExtensions
 
+open System
 open System.Collections.Generic
 open System.Collections.ObjectModel
 open System.Collections.Immutable
@@ -245,10 +246,11 @@ type QsNamespace with
         Documentation = documentation
     }
 
-type QsCompilation with
-    static member New (namespaces, entryPoints, callGraph) = {
-        Namespaces = namespaces
-        EntryPoints = entryPoints
-        CallGraph = callGraph
-    }
+//type QsCompilation with
+//    static member New (namespaces, entryPoints, callGraph) = {
+//        Id = Guid.NewGuid()
+//        Namespaces = namespaces
+//        EntryPoints = entryPoints
+//        CallGraph = callGraph
+//    }
 

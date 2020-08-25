@@ -23,7 +23,7 @@ namespace Microsoft.Quantum.QsCompiler.Transformations.IntrinsicResolution
             var envNames = environment.Namespaces.ToImmutableDictionary(ns => ns.Name);
             var targetNames = target.Namespaces.Select(ns => ns.Name).ToImmutableHashSet();
 
-            return new QsCompilation(
+            return QsCompilation.New(
                 environment.Namespaces
                     .Where(ns => !targetNames.Contains(ns.Name))
                     .Concat(target.Namespaces.Select(ns =>

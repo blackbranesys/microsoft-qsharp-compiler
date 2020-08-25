@@ -144,14 +144,14 @@ type ClassicalControlTests () =
                )
         rtrn |> Seq.map (fun (x,y) -> x)
 
-    let GetCallablesWithSuffix compilation ns (suffix : string) =
+    let GetCallablesWithSuffix (compilation : QsCompilation) ns (suffix : string) =
         compilation.Namespaces
         |> Seq.filter (fun x -> x.Name.Value = ns)
         |> GlobalCallableResolutions
         |> Seq.filter (fun x -> x.Key.Name.Value.EndsWith suffix)
         |> Seq.map (fun x -> x.Value)
 
-    let GetCallableWithName compilation ns name =
+    let GetCallableWithName (compilation : QsCompilation) ns name =
         compilation.Namespaces
         |> Seq.filter (fun x -> x.Name.Value = ns)
         |> GlobalCallableResolutions
