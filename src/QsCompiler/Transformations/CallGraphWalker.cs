@@ -26,6 +26,7 @@ namespace Microsoft.Quantum.QsCompiler.Transformations.CallGraphWalker
     {
         /// <summary>
         /// Builds and returns the call graph for the given callables.
+        /// The call graph will have a new random id.
         /// </summary>
         public static CallGraph Apply(IEnumerable<QsCallable> callables)
         {
@@ -40,9 +41,10 @@ namespace Microsoft.Quantum.QsCompiler.Transformations.CallGraphWalker
         }
 
         /// <summary>
-        /// Builds and returns the call graph for the given compilation.
+        /// Builds the call graph for the given compilation. Returns
+        /// a new compilation with the built call graph.
         /// </summary>
-        public static CallGraph Apply(QsCompilation compilation) =>
+        public static QsCompilation Apply(QsCompilation compilation) =>
             compilation.EntryPoints.Any()
             ? ApplyWithEntryPoints(compilation)
             : ApplyWithoutEntryPoints(compilation);
@@ -52,7 +54,7 @@ namespace Microsoft.Quantum.QsCompiler.Transformations.CallGraphWalker
         /// the resulting call graph to only include those callables that are related
         /// to an entry point.
         /// </summary>
-        private static CallGraph ApplyWithEntryPoints(QsCompilation compilation)
+        private static QsCompilation ApplyWithEntryPoints(QsCompilation compilation)
         {
             var walker = new BuildGraph();
 
@@ -77,7 +79,11 @@ namespace Microsoft.Quantum.QsCompiler.Transformations.CallGraphWalker
                 walker.Namespaces.OnCallableDeclaration(currentCallable);
             }
 
-            return walker.SharedState.Graph;
+            return QsCompilation.NewWithId(
+                walker.SharedState.Graph.CallGraphId,
+                compilation.Namespaces,
+                compilation.EntryPoints,
+                QsNullable<ICallGraph>.NewValue(walker.SharedState.Graph));
         }
 
         /// <summary>
@@ -85,17 +91,16 @@ namespace Microsoft.Quantum.QsCompiler.Transformations.CallGraphWalker
         /// will produce a call graph that contains all relationships amongst all callables
         /// in the compilation.
         /// </summary>
-        private static CallGraph ApplyWithoutEntryPoints(QsCompilation compilation)
+        private static QsCompilation ApplyWithoutEntryPoints(QsCompilation compilation)
         {
             var walker = new BuildGraph();
+            walker.OnCompilation(compilation);
 
-            // ToDo: This can be simplified once the OnCompilation method is merged in
-            foreach (var ns in compilation.Namespaces)
-            {
-                walker.Namespaces.OnNamespace(ns);
-            }
-
-            return walker.SharedState.Graph;
+            return QsCompilation.NewWithId(
+                walker.SharedState.Graph.CallGraphId,
+                compilation.Namespaces,
+                compilation.EntryPoints,
+                QsNullable<ICallGraph>.NewValue(walker.SharedState.Graph));
         }
 
         private class BuildGraph : SyntaxTreeTransformation<TransformationState>

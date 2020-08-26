@@ -245,12 +245,3 @@ type QsNamespace with
         Elements = elements.ToImmutableArray()
         Documentation = documentation
     }
-
-//type QsCompilation with
-//    static member New (namespaces, entryPoints, callGraph) = {
-//        Id = Guid.NewGuid()
-//        Namespaces = namespaces
-//        EntryPoints = entryPoints
-//        CallGraph = callGraph
-//    }
-

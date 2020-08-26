@@ -808,7 +808,8 @@ type ICallGraphNode =
     abstract member TypeArgs : QsNullable<ImmutableArray<ResolvedType>>
 
 // Interface used to represent a call graph
-type ICallGraph = 
+type ICallGraph =
+    abstract member CallGraphId : Guid
     abstract member Count : int
     abstract member Nodes : ImmutableHashSet<ICallGraphNode>
     abstract member ContainsNode : ICallGraphNode -> bool
@@ -835,8 +836,17 @@ with
         _callGraph = callGraph
     }
 
+    /// Creates a new QsCompilation object with a specific compilation id.
+    static member NewWithId (compilationId, namespaces, entryPoints, callGraph) = {
+        _compilationId = compilationId
+        _namespaces = namespaces
+        _entryPoints = entryPoints
+        _callGraph = callGraph
+    }
+
     /// Unique id for this compilation.
     /// Generated for each new QsCompilation.
+    /// This is used to check if the call graph for the compilation is up-to-date.
     member this.Id : Guid = this._compilationId
     
     /// Contains all compiled namespaces.
@@ -849,3 +859,12 @@ with
     /// Contains the Call Graph for the compilation.
     /// Null if no call graph has been generated.
     member this.CallGraph : QsNullable<ICallGraph> = this._callGraph
+
+    /// Is true when the call graph is up-to-date with the syntax
+    /// tree of the compilation. Is false otherwise. If false
+    /// the Microsoft.Quantum.Transformations.CallGraphWalker can be used
+    /// to create a new call graph for a given compilation.
+    member this.IsCallGraphUpToDate : bool =
+        match this.CallGraph with
+        | Null -> false
+        | Value graph -> this.Id = graph.CallGraphId

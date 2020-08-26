@@ -241,6 +241,11 @@ namespace Microsoft.Quantum.QsCompiler.DependencyAnalysis
         // Properties
 
         /// <summary>
+        /// A unique identifier for the call graph.
+        /// </summary>
+        public Guid CallGraphId { get; } = Guid.NewGuid();
+
+        /// <summary>
         /// The number of nodes in the call graph.
         /// </summary>
         public int Count => this.dependencies.Count;
