@@ -122,22 +122,24 @@ namespace Microsoft.Quantum.QsCompiler
                 // TODO: Remove this code since these are just experiments used to explore different performance enhancings.
                 // TODO: Remove - New serializer init.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerializerInit);
-                Thread.Sleep(1000);
+                var (bondSerializer, bondWriter, bondBuffer) = PerformanceExperiments.CreateFastBinaryBufferSerializationTuple();
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewSerializerInit);
 
                 // TODO: Remove - New serialization.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerialization);
-                Thread.Sleep(1000);
+                var bondQsCompilation = BondSchemas.Extensions.CreateBondCompilation(compilation);
+                bondSerializer.Serialize(bondQsCompilation, bondWriter);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewSerialization);
 
                 // TODO: Remove - New deserializer init.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewDeserializerInit);
-                Thread.Sleep(1000);
+                var (bondDeserializer, bondReader) = PerformanceExperiments.CreateFastBinaryBufferDeserializationTuple(bondBuffer);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserializerInit);
 
                 // TODO: Remove - New deserialization.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewDeserialization);
-                Thread.Sleep(1000);
+                var deserializedBondCompilation = bondDeserializer.Deserialize<BondSchemas.QsCompilation>(bondReader);
+                var deserializedOriginalCompilation = BondSchemas.Extensions.CreateQsCompilation(deserializedBondCompilation);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserialization);
 
                 return compilation != null && !compilation.Namespaces.IsDefault && !compilation.EntryPoints.IsDefault;

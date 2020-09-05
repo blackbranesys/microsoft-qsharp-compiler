@@ -77,7 +77,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
 
         private static QsNamespaceElement ToBondSchema(this SyntaxTree.QsNamespaceElement qsNamespaceElement)
         {
-            /*QsNamespaceElementKind kind;
+            QsNamespaceElementKind kind;
             SyntaxTree.QsCallable qsCallable = null;
             SyntaxTree.QsCustomType qsCustomType = null;
             if (qsNamespaceElement.TryGetCallable(ref qsCallable))
@@ -100,9 +100,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 CustomType = qsCustomType?.ToBondSchema()
             };
 
-            return bondQsNamespaceElement;*/
-
-            throw new NotImplementedException();
+            return bondQsNamespaceElement;
         }
     }
 }
