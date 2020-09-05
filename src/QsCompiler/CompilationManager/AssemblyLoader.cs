@@ -120,6 +120,9 @@ namespace Microsoft.Quantum.QsCompiler
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.SyntaxTreeDeserialization);
 
                 // TODO: Remove this code since these are just experiments used to explore different performance enhancings.
+
+                // TODO: Add a newtonsoft serialization task  to be able to easily compare everything here.
+
                 // TODO: Remove - New serializer init.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerializerInit);
                 var (bondSerializer, bondWriter, bondBuffer) = PerformanceExperiments.CreateFastBinaryBufferSerializationTuple();
