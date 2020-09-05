@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Threading;
 using Microsoft.Quantum.QsCompiler.CompilationBuilder;
 using Microsoft.Quantum.QsCompiler.Diagnostics;
 using Microsoft.Quantum.QsCompiler.ReservedKeywords;
@@ -117,6 +118,28 @@ namespace Microsoft.Quantum.QsCompiler
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.SyntaxTreeDeserialization);
                 compilation = Json.Serializer.Deserialize<QsCompilation>(reader);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.SyntaxTreeDeserialization);
+
+                // TODO: Remove this code since these are just experiments used to explore different performance enhancings.
+                // TODO: Remove - New serializer init.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerializerInit);
+                Thread.Sleep(1000);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewSerializerInit);
+
+                // TODO: Remove - New serialization.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerialization);
+                Thread.Sleep(1000);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewSerialization);
+
+                // TODO: Remove - New deserializer init.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewDeserializerInit);
+                Thread.Sleep(1000);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserializerInit);
+
+                // TODO: Remove - New deserialization.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewDeserialization);
+                Thread.Sleep(1000);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserialization);
+
                 return compilation != null && !compilation.Namespaces.IsDefault && !compilation.EntryPoints.IsDefault;
             }
             catch (Exception ex)

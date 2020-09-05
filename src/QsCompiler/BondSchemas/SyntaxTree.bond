@@ -1,0 +1,720 @@
+﻿namespace Microsoft.Quantum.QsCompiler.BondSchemas;
+
+/*
+    
+*/
+enum QsBindingKind {
+    ImmutableBinding,
+    MutableBinding
+}
+
+/*
+    
+*/
+enum QsSpecializationKind {
+    QsBody,
+    QsAdjoint,
+    QsControlled,
+    QsControlledAdjoint
+}
+
+/*
+    
+*/
+enum QsCallableKind {
+    Operation,
+    Function,
+    TypeConstructor
+}
+
+/*
+    
+*/
+enum QsQubitScopeKind {
+    Allocate,
+    Borrow
+}
+
+/*
+    
+*/
+struct QsQualifiedName
+{
+    5: required string Namespace;
+
+    10: required string Name;
+}
+
+/*
+    
+*/
+enum SymbolTupleKind {
+    InvalidItem,
+    VariableName,
+    VariableNameTuple,
+    DiscardedItem
+}
+
+/*
+    
+*/
+struct SymbolTuple
+{
+    5: required SymbolTupleKind Kind = InvalidItem;
+
+    // TODO: Check what type might be useful for an 'InvalidItem' kind. Use string in the meantime.
+    10: nullable<string> InvalidItem = nothing;
+
+    15: nullable<string> VariableName = nothing;
+
+    20: nullable<vector<SymbolTuple>> VariableNameTuple = nothing;
+
+    // TODO: The real type of this is an ITuple object but have a placeholder in the meantime.
+    25: nullable<list<string>> DiscardedItem = nothing;
+}
+
+/*
+    
+*/
+struct QsBinding
+{
+    5: required QsBindingKind Kind = ImmutableBinding;
+
+    10: required SymbolTuple Lhs;
+
+    // TODO: The real type of this is variable (Generic 'T) but have a placeholder in the meantime.
+    15: required string Rhs;
+}
+
+/*
+    
+*/
+enum IdentifierKind {
+    LocalVariable,
+    GlobalCallable,
+    InvalidIdentifier
+}
+
+/*
+    
+*/
+struct Identifier
+{
+    5: required IdentifierKind Kind = LocalVariable;
+
+    10: nullable<string> LocalVariable = nothing;
+
+    15: nullable<QsQualifiedName> GlobalCallable = nothing;
+
+    // TODO: Check what type moigh be useful for an 'InvalidIdentifier' kind. Use string in the meantime.
+    20: nullable<string> InvalidIdentifier = nothing;
+}
+
+/*
+    
+
+    N.B. This does not exist in the F# data structures but it is required since tuples are not supported.
+*/
+struct QsLocationOffset
+{
+    5: required int32 Line;
+
+    10: required int32 Character;
+}
+
+/*
+    
+*/
+struct QsPositionInfo
+{
+    5: required int32 Line;
+
+    10: required int32 Column;
+}
+
+/*
+    
+
+    N.B. Most uses of this data structure should be nullable.
+*/
+struct QsRangeInfo
+{
+    // TODO: The name left might not be correct for all cases.
+    5: required QsPositionInfo Left;
+
+    // TODO: The name right might not be correct for all cases.
+    10: required QsPositionInfo Right;
+}
+
+/*
+    
+*/
+struct QsLocation
+{
+    5: required QsLocationOffset Offset;
+
+    10: nullable<QsRangeInfo> Range = nothing;
+}
+
+/*
+    
+*/
+struct QsTypeParameter
+{
+    5: required QsQualifiedName Origin;
+
+    10: required string TypeName;
+
+    15: nullable<QsRangeInfo> Range = nothing;
+}
+
+/*
+    
+*/
+struct UserDefinedType
+{
+    5: required string Namespace;
+
+    10: required string Name;
+
+    15: nullable<QsRangeInfo> Range = nothing;
+}
+
+/*
+    
+*/
+enum CharacteristicsKind {
+    EmptySet,
+    SimpleSet,
+    Union,
+    Intersection,
+    InvalidSetExpr
+}
+
+/*
+    
+*/
+struct ResolvedCharacteristics
+{
+    5: required CharacteristicsKind Kind = EmptySet;
+
+    // TODO: Implement per 'Kind' fields.
+}
+
+/*
+    
+*/
+struct InferredCallableInformation
+{
+    5: required bool IsSelfAdjoint;
+
+    10: required bool IsIntrinsic;
+}
+
+/*
+    
+*/
+struct CallableInformation
+{
+    5: required ResolvedCharacteristics Characteristics;
+
+    10: required InferredCallableInformation InferredInformation;
+}
+
+/*
+    
+*/
+enum QsTypeKind {
+    UnitType,
+    Int,
+    BigInt,
+    Double,
+    Bool,
+    String,
+    Qubit,
+    Result,
+    Pauli,
+    Range,
+    ArrayType,
+    TupleType,
+    UserDefinedType,
+    TypeParameter,
+    Operation,
+    Function,
+    MissingType,
+    InvalidType
+}
+
+/*
+    
+*/
+struct ResolvedType
+{
+    5: required QsTypeKind Kind = InvalidType;
+
+    // TODO: Add a field per 'Kind'.
+}
+
+/*
+    
+*/
+struct InferredExpressionInformation
+{
+    5: required bool IsMutable;
+
+    10: required bool HasLocalQuantumDependency;
+}
+
+/*
+    
+*/
+enum QsExpressionKind {
+    UnitValue,
+    Identifier,
+    ValueTuple,
+    IntLiteral,
+    BigIntLiteral,
+    DoubleLiteral,
+    BoolLiteral,
+    StringLiteral,
+    ResultLiteral,
+    PauliLiteral,
+    RangeLiteral,
+    NewArray,
+    ValueArray,
+    ArrayItem,
+    NamedItem,
+    NEG,
+    NOT,
+    BNOT,
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    MOD,
+    POW,
+    EQ,
+    NEQ,
+    LT,
+    LTE,
+    GT,
+    GTE,
+    AND,
+    OR,
+    BOR,
+    BAND,
+    BXOR,
+    LSHIFT,
+    RSHIFT,
+    CONDITIONAL,
+    CopyAndUpdate,
+    UnwrapApplication,
+    AdjointApplication,
+    ControlledApplication,
+    CallLikeExpression,
+    MissingExpr,
+    InvalidExpr
+}
+
+/*
+    
+*/
+struct TypedArgument
+{
+    5: required QsQualifiedName Callable;
+
+    10: required string Name;
+
+    15: required ResolvedType Resolution;
+
+    // TODO: Add a nullable field per expression.
+
+}
+
+/*
+    
+*/
+struct TypedExpression
+{
+    5: required QsExpressionKind Kind = InvalidExpr;
+
+    10: required vector<TypedArgument> TypedArguments;
+
+    15: required ResolvedType Resolution;
+
+    20: required InferredExpressionInformation InferredInformation;
+
+    25: nullable<QsRangeInfo> Range;
+
+    // TODO: Add a nullable field per expression.
+
+}
+
+/*
+    
+*/
+enum QsInitializerKind
+{
+    SingleQubitAllocation,
+    QubitRegisterAllocation,
+    QubitTupleAllocation,
+    InvalidInitializer
+}
+
+/*
+    
+*/
+struct ResolvedInitializer
+{
+    5: required QsInitializerKind InitializerKind = InvalidInitializer;
+
+    10: required ResolvedType Resolution;
+
+    // TODO: Maybe this needs additional members depending on 'InitializerKind'.
+}
+
+/*
+    
+
+    N.B. This is similar to QsPositionInfo but have not determined whether the two fields represent Line and Column as well.
+*/
+struct PositionInfo
+{
+    5: required int32 A;
+
+    10: required int32 B;
+}
+
+/*
+    
+*/
+struct LocalVariableDeclaration
+{
+    // TODO: This is not necessarily a string, verify it later.
+    5: required string VariableName;
+
+    10: required ResolvedType Type;
+
+    15: required InferredExpressionInformation InferredInformation;
+
+    20: nullable<PositionInfo> Position = nothing;
+
+    25: required QsRangeInfo Range;
+}
+
+/*
+    
+*/
+struct LocalDeclarations
+{
+    5: required vector<LocalVariableDeclaration> Variables;
+
+    // TODO: Maybe this needs more data but not sure yet.
+}
+
+/*
+    
+*/
+struct QsValueUpdate
+{
+    5: required TypedExpression Lhs;
+
+    10: required TypedExpression Rhs;
+}
+
+/*
+    
+*/
+struct QsComments
+{
+    5: required vector<string> OpeningComments;
+
+    10: required vector<string> ClosingComments;
+}
+
+/*
+    
+*/
+enum QsStatementKind
+{
+    QsExpressionStatement,
+    QsReturnStatement,
+    QsFailStatement,
+    QsVariableDeclaration,
+    QsValueUpdate,
+    QsConditionalStatement,
+    QsForStatement,
+    QsWhileStatement,
+    QsRepeatStatement,
+    QsConjugation,
+    QsQubitScope,
+    EmptyStatement
+}
+
+/*
+    
+*/
+struct QsStatement
+{
+    5: required QsStatementKind Kind = EmptyStatement;
+
+    10: required LocalDeclarations SymbolDeclarations;
+
+    15: nullable<QsLocation> Location;
+
+    20: required QsComments Comments;
+
+    // TODO: Add fiedls depending on 'Kind'.
+}
+
+/*
+    
+*/
+enum QsLocalSymbolKind
+{
+    ValidName,
+    InvalidName
+}
+
+/*
+    
+*/
+struct QsLocalSymbol
+{
+    5: required QsLocalSymbolKind Kind = InvalidName;
+
+    // Non-null when 'Kind' is 'ValidName'.
+    10: nullable<string> Name = nothing;
+}
+
+/*
+    
+*/
+struct QsDeclarationAttribute
+{
+    5: nullable<UserDefinedType> TypeId;
+
+    10: required TypedExpression Argument;
+
+    15: required PositionInfo Offset;
+
+    20: required QsComments Comments;
+}
+
+/*
+    
+*/
+struct ResolvedSignature
+{
+    5: required vector<QsLocalSymbol> TypeParameters;
+
+    10: required ResolvedType ArgumentType;
+
+    15: required ResolvedType ReturnType;
+
+    20: required CallableInformation Information;
+}
+
+/*
+    
+*/
+enum SpecializationImplementationKind
+{
+    Provided,
+    Intrinsic,
+    External,
+    Generated
+}
+
+/*
+    
+*/
+struct SpecializationImplementation
+{
+    5: required SpecializationImplementationKind Kind = Generated;
+
+    // TODO: Add a field nullable field that represents each 'Kind'.
+}
+
+/*
+    
+*/
+struct QsSpecialization
+{
+    5: required QsSpecializationKind Kind = QsBody;
+
+    10: required QsQualifiedName Parent;
+
+    15: required vector<QsDeclarationAttribute> Attributes;
+
+    20: required string SourceFile;
+
+    25: nullable<QsLocation> Location;
+
+    30: nullable<vector<ResolvedType>> TypeArguments;
+
+    35: required ResolvedSignature Signature;
+
+    40: required SpecializationImplementation Implementation;
+
+    45: required vector<string> Documentation;
+
+    50: required QsComments Comments;
+}
+
+/*
+    
+*/
+enum AccessModifier
+{
+    DefaultAccess,
+    Internal
+}
+
+/*
+    
+*/
+struct Modifiers
+{
+    5: required AccessModifier Access = DefaultAccess;
+}
+
+/*
+    
+*/
+enum QsTupleKind
+{
+    QsTupleItem,
+    QsTuple
+}
+
+/*
+    
+*/
+struct QsTuple
+{
+    5: required QsTupleKind Kind = QsTupleItem;
+
+    // TODO: Add a field per kind. This might be a templated structure.
+}
+
+/*
+    
+*/
+struct QsCallable
+{
+    5: required QsCallableKind Kind = Operation;
+
+    10: required QsQualifiedName FullName;
+
+    15: required vector<QsDeclarationAttribute> Attributes;
+
+    20: required Modifiers ModifiersSet;
+
+    25: required string SourceFile;
+
+    30: nullable<QsLocation> Location;
+
+    35: required ResolvedSignature Signature;
+
+    // TODO: This should be a templated QsTuple type.
+    40: required QsTuple ArgumentTuple;
+
+    45: required vector<QsSpecialization> Specializations;
+
+    50: required vector<string> Documentation;
+
+    55: required QsComments Comments;
+}
+
+/*
+    
+*/
+enum QsTypeItemKind
+{
+    Named,
+    Anonymous
+}
+
+/*
+    
+*/
+struct QsTypeItem
+{
+    5: required QsTypeItemKind Kind = Named;
+
+    10: nullable<LocalVariableDeclaration> NamedItem = nothing;
+
+    15: nullable<ResolvedType> AnonymousItem = nothing;
+}
+
+/*
+    
+*/
+struct QsCustomType
+{
+    5: required QsQualifiedName FullName;
+
+    10: required vector<QsDeclarationAttribute> Attributes;
+
+    15: required Modifiers ModifiersSet;
+
+    20: required string SourceFile;
+
+    25: nullable<QsLocation> Location;
+
+    30: required ResolvedType Type;
+
+    // TODO: This should be a templated tuple.
+    35: required QsTuple TypeItems;
+
+    40: required vector<string> Documentation;
+
+    45: required QsComments Comments;
+}
+
+/*
+    
+*/
+enum QsNamespaceElementKind
+{
+    QsCallable,
+    QsCustomType
+}
+
+/*
+    
+*/
+struct QsNamespaceElement
+{
+    5: required QsNamespaceElementKind Kind = QsCallable;
+
+    // Non-null when 'Kind' is 'QsCallable'.
+    10: nullable<QsCallable> Callable = nothing;
+
+    // Non-null when 'Kind' is 'QsCustomType'.
+    15: nullable<QsCustomType> CustomType = nothing;
+}
+
+/*
+    
+*/
+struct QsNamespace
+{
+    5: required string Name;
+
+    10: required vector<QsNamespaceElement> Elements;
+
+    // The key is the name of the source file the documentation has been specified in.
+    15: required map<string, vector<string>> Documentation;
+}
+
+/*
+    
+*/
+struct QsCompilation
+{
+    5: required vector<QsNamespace> Namespaces;
+
+    10: required vector<QsQualifiedName> EntryPoints;
+}

@@ -107,7 +107,12 @@ namespace Microsoft.Quantum.QsCompiler.Diagnostics
             /// <summary>
             /// Task that deserializes as part of the 'ReferenceLoading' task.
             /// </summary>
-            SyntaxTreeDeserialization
+            SyntaxTreeDeserialization,
+
+            NewSerializerInit,
+            NewSerialization,
+            NewDeserializerInit,
+            NewDeserialization
         }
 
         /// <summary>
@@ -144,7 +149,11 @@ namespace Microsoft.Quantum.QsCompiler.Diagnostics
             { Task.SyntaxTreeSerialization, Task.OutputGeneration },
             { Task.LoadDataFromReferenceToStream, Task.ReferenceLoading },
             { Task.DeserializerInit, Task.ReferenceLoading },
-            { Task.SyntaxTreeDeserialization, Task.ReferenceLoading }
+            { Task.SyntaxTreeDeserialization, Task.ReferenceLoading },
+            { Task.NewSerializerInit, Task.ReferenceLoading },
+            { Task.NewSerialization, Task.ReferenceLoading },
+            { Task.NewDeserializerInit, Task.ReferenceLoading },
+            { Task.NewDeserialization, Task.ReferenceLoading }
         };
 
         /// <summary>
