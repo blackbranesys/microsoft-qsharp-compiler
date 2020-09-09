@@ -66,6 +66,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
         {
             var bondQsCustomType = new QsCustomType
             {
+                FullName = qsCustomType.FullName.ToBondSchema(),
                 Documentation = qsCustomType.Documentation.ToList(),
                 Comments = qsCustomType.Comments.ToBondSchema()
             };
@@ -142,6 +143,31 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return bondQsNamespaceElement;
         }
 
+        private static DataTypes.Position ToDataTypeObject(this Position position) =>
+            DataTypes.Position.Create(position.Line, position.Column);
+
+        private static DataTypes.Range ToDataTypeObject(this Range range) =>
+            DataTypes.Range.Create(range.Start.ToDataTypeObject(), range.End.ToDataTypeObject());
+
+        private static NonNullable<string> ToNonNullable(this string str) =>
+            NonNullable<string>.New(str);
+
+        private static QsNullable<SyntaxTree.QsLocation> ToQsNullable(this SyntaxTree.QsLocation qsLocation) =>
+            QsNullable<SyntaxTree.QsLocation>.NewValue(qsLocation);
+
+        private static SyntaxTree.QsLocation ToSyntaxTreeObject(this QsLocation bondQsLocation)
+        {
+            return bondQsLocation != null ?
+                new SyntaxTree.QsLocation(bondQsLocation.Offset.ToDataTypeObject(), bondQsLocation.Range.ToDataTypeObject()) :
+                null;
+        }
+            
+
+        private static SyntaxTree.QsComments ToSyntaxTreeObject(this QsComments bondQsComments) =>
+            new SyntaxTree.QsComments(
+                bondQsComments.OpeningComments.ToImmutableArray(),
+                bondQsComments.ClosingComments.ToImmutableArray());
+
         private static SyntaxTree.QsNamespace ToSyntaxTreeObject(this QsNamespace bondQsNamespace)
         {
             var elements = new List<SyntaxTree.QsNamespaceElement>();
@@ -166,12 +192,35 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             }
             else if (bondQsNamespaceElement.Kind == QsNamespaceElementKind.QsCustomType)
             {
-                return default;
+                var bondQsCustomType = bondQsNamespaceElement.CustomType;
+                var qsCustomType = new SyntaxTree.QsCustomType(
+                    fullName: bondQsCustomType.FullName.ToSyntaxTreeObject(),
+                    // TODO: Implement needed extensions.
+                    attributes: Array.Empty<SyntaxTree.QsDeclarationAttribute>().ToImmutableArray(),
+                    // TODO: Get this from the bond objects.
+                    modifiers: new SyntaxTokens.Modifiers(),
+                    sourceFile: bondQsCustomType.SourceFile.ToNonNullable(),
+                    location: bondQsCustomType.Location.ToSyntaxTreeObject().ToQsNullable(),
+                    // TODO: Implement this.
+                    type: default,
+                    // TODO: Implement this.
+                    typeItems: default,
+                    documentation: bondQsCustomType.Documentation.ToImmutableArray(),
+                    comments: bondQsCustomType.Comments.ToSyntaxTreeObject());
+                // TODO: Continue doing this.
+                return SyntaxTree.QsNamespaceElement.NewQsCustomType(qsCustomType);
             }
             else
             {
                 throw new ArgumentException($"Unsupported kind: {bondQsNamespaceElement.Kind}");
             }
+        }
+
+        private static SyntaxTree.QsQualifiedName ToSyntaxTreeObject(this QsQualifiedName bondQsQualifiedName)
+        {
+            return new SyntaxTree.QsQualifiedName(
+                NonNullable<string>.New(bondQsQualifiedName.Name),
+                NonNullable<string>.New(bondQsQualifiedName.Namespace));
         }
     }
 }

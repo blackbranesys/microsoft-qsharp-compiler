@@ -1,5 +1,27 @@
 ﻿namespace Microsoft.Quantum.QsCompiler.BondSchemas;
 
+// Data Types.
+
+/*
+    
+*/
+struct Position
+{
+    5: required int32 Line;
+
+    10: required int32 Column;
+}
+
+/*
+    
+*/
+struct Range
+{
+    5: required Position Start;
+
+    10: required Position End;
+}
+
 /*
     
 */
@@ -151,9 +173,9 @@ struct QsRangeInfo
 */
 struct QsLocation
 {
-    5: required QsLocationOffset Offset;
+    5: required Position Offset;
 
-    10: nullable<QsRangeInfo> Range = nothing;
+    10: required Range Range;
 }
 
 /*
