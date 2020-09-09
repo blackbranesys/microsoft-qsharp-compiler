@@ -130,7 +130,7 @@ namespace Microsoft.Quantum.QsCompiler
 
                 // TODO: Remove - New serializer init.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerializerInit);
-                var (bondSerializer, bondWriter, bondBuffer) = PerformanceExperiments.CreateFastBinaryBufferSerializationTuple();
+                var (bondSerializer, bondWriter, bondBuffer) = PerformanceExperiments.CreateSimpleBinaryBufferSerializationTuple();
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewSerializerInit);
 
                 // TODO: Remove - New serialization.
@@ -141,7 +141,7 @@ namespace Microsoft.Quantum.QsCompiler
 
                 // TODO: Remove - New deserializer init.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewDeserializerInit);
-                var (bondDeserializer, bondReader) = PerformanceExperiments.CreateFastBinaryBufferDeserializationTuple(bondBuffer);
+                var (bondDeserializer, bondReader) = PerformanceExperiments.CreateSimpleBinaryBufferDeserializationTuple(bondBuffer);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserializerInit);
 
                 // TODO: Remove - New deserialization.
