@@ -699,14 +699,23 @@ struct QsNamespaceElement
 /*
     
 */
+struct QsDocumentationItem
+{
+    5: required string SourceFileName;
+
+    10: required vector<string> DocumentationInstances;
+}
+
+/*
+    
+*/
 struct QsNamespace
 {
     5: required string Name;
 
     10: required vector<QsNamespaceElement> Elements;
 
-    // The key is the name of the source file the documentation has been specified in.
-    15: required map<string, vector<string>> Documentation;
+    15: required list<QsDocumentationItem> Documentation;
 }
 
 /*

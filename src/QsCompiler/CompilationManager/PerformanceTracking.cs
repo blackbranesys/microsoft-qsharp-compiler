@@ -109,10 +109,14 @@ namespace Microsoft.Quantum.QsCompiler.Diagnostics
             /// </summary>
             SyntaxTreeDeserialization,
 
+            // TODO: Remove these since they are only used for experimentation.
             NewSerializerInit,
             NewSerialization,
             NewDeserializerInit,
-            NewDeserialization
+            NewDeserialization,
+            NewtonsoftOriginalSerialization,
+            NewtonsoftComparableSerialization,
+            NewtonsoftComparableDeserialization
         }
 
         /// <summary>
@@ -153,7 +157,10 @@ namespace Microsoft.Quantum.QsCompiler.Diagnostics
             { Task.NewSerializerInit, Task.ReferenceLoading },
             { Task.NewSerialization, Task.ReferenceLoading },
             { Task.NewDeserializerInit, Task.ReferenceLoading },
-            { Task.NewDeserialization, Task.ReferenceLoading }
+            { Task.NewDeserialization, Task.ReferenceLoading },
+            { Task.NewtonsoftOriginalSerialization, Task.ReferenceLoading },
+            { Task.NewtonsoftComparableSerialization, Task.ReferenceLoading },
+            { Task.NewtonsoftComparableDeserialization, Task.ReferenceLoading }
         };
 
         /// <summary>

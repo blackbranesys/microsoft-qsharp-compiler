@@ -122,6 +122,11 @@ namespace Microsoft.Quantum.QsCompiler
                 // TODO: Remove this code since these are just experiments used to explore different performance enhancings.
 
                 // TODO: Add a newtonsoft serialization task  to be able to easily compare everything here.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewtonsoftOriginalSerialization);
+                var newtonsoftMemoryStreamA = new MemoryStream();
+                using var newtonsoftWriterA = new BsonDataWriter(newtonsoftMemoryStreamA) { CloseOutput = false };
+                Json.Serializer.Serialize(newtonsoftWriterA, compilation);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewtonsoftOriginalSerialization);
 
                 // TODO: Remove - New serializer init.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerializerInit);
@@ -144,6 +149,19 @@ namespace Microsoft.Quantum.QsCompiler
                 var deserializedBondCompilation = bondDeserializer.Deserialize<BondSchemas.QsCompilation>(bondReader);
                 var deserializedOriginalCompilation = BondSchemas.Extensions.CreateQsCompilation(deserializedBondCompilation);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserialization);
+
+                // TODO: Remove - Comparable Newtonsoft serialization.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewtonsoftComparableSerialization);
+                var newtonsoftMemoryStreamB = new MemoryStream();
+                using var newtonsoftWriterB = new BsonDataWriter(newtonsoftMemoryStreamB) { CloseOutput = false };
+                Json.Serializer.Serialize(newtonsoftWriterB, deserializedOriginalCompilation);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewtonsoftComparableSerialization);
+
+                // TODO: Remove - Comparable Newtonsoft deserialization.
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.NewtonsoftComparableDeserialization);
+                using var newtonsoftReader = new BsonDataReader(newtonsoftMemoryStreamB);
+                var deserializedByNewtonsoftCompilation = Json.Serializer.Deserialize<QsCompilation>(newtonsoftReader);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewtonsoftComparableDeserialization);
 
                 return compilation != null && !compilation.Namespaces.IsDefault && !compilation.EntryPoints.IsDefault;
             }
