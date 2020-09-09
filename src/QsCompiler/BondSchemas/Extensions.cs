@@ -31,19 +31,10 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
 
         public static SyntaxTree.QsCompilation CreateQsCompilation(QsCompilation bondCompilation)
         {
-            var namespaces = new SyntaxTree.QsNamespace[bondCompilation.Namespaces.Count];
-            var index = 0;
+            var namespaces = new List<SyntaxTree.QsNamespace>();
             foreach(var bondNamespace in bondCompilation.Namespaces)
             {
-                var elements = Array.Empty<SyntaxTree.QsNamespaceElement>();
-                namespaces[index] = new SyntaxTree.QsNamespace(
-                    NonNullable<string>.New(bondNamespace.Name),
-                    elements.ToImmutableArray(),
-                    bondNamespace.Documentation.ToLookup(
-                        p => NonNullable<string>.New(p.SourceFileName),
-                        p => p.DocumentationInstances.ToImmutableArray()));
-
-                index++;
+                namespaces.Add(bondNamespace.ToSyntaxTreeObject());
             }
 
             var entryPoints = Array.Empty<SyntaxTree.QsQualifiedName>();
@@ -60,11 +51,23 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return bondQsCallable;
         }
 
+        private static QsComments ToBondSchema(this SyntaxTree.QsComments qsComments)
+        {
+            var bondQsComments = new QsComments
+            {
+                OpeningComments = qsComments.OpeningComments.ToList(),
+                ClosingComments = qsComments.ClosingComments.ToList()
+            };
+
+            return bondQsComments;
+        }
+
         private static QsCustomType ToBondSchema(this SyntaxTree.QsCustomType qsCustomType)
         {
             var bondQsCustomType = new QsCustomType
             {
-                // TODO: Populate.
+                Documentation = qsCustomType.Documentation.ToList(),
+                Comments = qsCustomType.Comments.ToBondSchema()
             };
 
             return bondQsCustomType;
@@ -137,6 +140,38 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             };
 
             return bondQsNamespaceElement;
+        }
+
+        private static SyntaxTree.QsNamespace ToSyntaxTreeObject(this QsNamespace bondQsNamespace)
+        {
+            var elements = new List<SyntaxTree.QsNamespaceElement>();
+            foreach(var bondNamespaceElement in bondQsNamespace.Elements)
+            {
+                elements.Add(bondNamespaceElement.ToSyntaxTreeObject());
+            }
+
+            return new SyntaxTree.QsNamespace(
+                NonNullable<string>.New(bondQsNamespace.Name),
+                elements.ToImmutableArray(),
+                bondQsNamespace.Documentation.ToLookup(
+                    p => NonNullable<string>.New(p.SourceFileName),
+                    p => p.DocumentationInstances.ToImmutableArray()));
+        }
+
+        private static SyntaxTree.QsNamespaceElement ToSyntaxTreeObject(this QsNamespaceElement bondQsNamespaceElement)
+        {
+            if (bondQsNamespaceElement.Kind == QsNamespaceElementKind.QsCallable)
+            {
+                return default;
+            }
+            else if (bondQsNamespaceElement.Kind == QsNamespaceElementKind.QsCustomType)
+            {
+                return default;
+            }
+            else
+            {
+                throw new ArgumentException($"Unsupported kind: {bondQsNamespaceElement.Kind}");
+            }
         }
     }
 }
