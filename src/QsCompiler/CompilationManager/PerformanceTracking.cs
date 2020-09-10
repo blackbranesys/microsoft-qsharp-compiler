@@ -114,6 +114,8 @@ namespace Microsoft.Quantum.QsCompiler.Diagnostics
             NewSerialization,
             NewDeserializerInit,
             NewDeserialization,
+            TranslationToBond,
+            TranslationFromBond,
             NewtonsoftOriginalSerialization,
             NewtonsoftComparableSerialization,
             NewtonsoftComparableDeserialization
@@ -156,8 +158,10 @@ namespace Microsoft.Quantum.QsCompiler.Diagnostics
             { Task.SyntaxTreeDeserialization, Task.ReferenceLoading },
             { Task.NewSerializerInit, Task.ReferenceLoading },
             { Task.NewSerialization, Task.ReferenceLoading },
+            { Task.TranslationToBond, Task.NewSerialization },
             { Task.NewDeserializerInit, Task.ReferenceLoading },
             { Task.NewDeserialization, Task.ReferenceLoading },
+            { Task.TranslationFromBond, Task.NewDeserialization },
             { Task.NewtonsoftOriginalSerialization, Task.ReferenceLoading },
             { Task.NewtonsoftComparableSerialization, Task.ReferenceLoading },
             { Task.NewtonsoftComparableDeserialization, Task.ReferenceLoading }

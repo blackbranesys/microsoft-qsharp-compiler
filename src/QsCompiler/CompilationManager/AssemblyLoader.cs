@@ -135,7 +135,10 @@ namespace Microsoft.Quantum.QsCompiler
 
                 // TODO: Remove - New serialization.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewSerialization);
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.TranslationToBond);
                 var bondQsCompilation = BondSchemas.Extensions.CreateBondCompilation(compilation);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.TranslationToBond);
+
                 bondSerializer.Serialize(bondQsCompilation, bondWriter);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewSerialization);
 
@@ -147,7 +150,10 @@ namespace Microsoft.Quantum.QsCompiler
                 // TODO: Remove - New deserialization.
                 PerformanceTracking.TaskStart(PerformanceTracking.Task.NewDeserialization);
                 var deserializedBondCompilation = bondDeserializer.Deserialize<BondSchemas.QsCompilation>(bondReader);
+
+                PerformanceTracking.TaskStart(PerformanceTracking.Task.TranslationFromBond);
                 var deserializedOriginalCompilation = BondSchemas.Extensions.CreateQsCompilation(deserializedBondCompilation);
+                PerformanceTracking.TaskEnd(PerformanceTracking.Task.TranslationFromBond);
                 PerformanceTracking.TaskEnd(PerformanceTracking.Task.NewDeserialization);
 
                 // TODO: Remove - Comparable Newtonsoft serialization.
