@@ -39,13 +39,26 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return new SyntaxTree.QsCompilation(namespaces.ToImmutableArray(), entryPoints.ToImmutableArray());
         }
 
+        private static Position ToBondSchema(this DataTypes.Position position) =>
+            new Position
+            {
+                Line = position.Line,
+                Column = position.Column
+            };
+
         private static QsCallable ToBondSchema(this SyntaxTree.QsCallable qsCallable)
         {
             var bondQsCallable = new QsCallable
             {
                 Kind = qsCallable.Kind.ToBondSchema(),
                 FullName = qsCallable.FullName.ToBondSchema(),
-                // TODO: Populate.
+                Attributes = qsCallable.Attributes.Select(a => a.ToBondSchema()).ToList(),
+                // TODO: Implement ModifiersSet
+                SourceFile = qsCallable.SourceFile.Value,
+                Location = qsCallable.Location.IsNull ? null : qsCallable.Location.Item.ToBondSchema(),
+                // TODO: Implement Signature,
+                // TODO: Implement ArgumentTuple,
+                // TODO: Implement Specializations.
                 Documentation = qsCallable.Documentation.ToList(),
                 Comments = qsCallable.Comments.ToBondSchema()
             };
@@ -94,6 +107,19 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return bondQsCustomType;
         }
 
+        private static QsDeclarationAttribute ToBondSchema(this SyntaxTree.QsDeclarationAttribute qsDeclarationAttribute)
+        {
+            var bondQsDeclarationAttribute = new QsDeclarationAttribute
+            {
+                // TODO: Implement TypeId
+                // TODO: Implement Argument
+                Offset = qsDeclarationAttribute.Offset.ToBondSchema(),
+                Comments = qsDeclarationAttribute.Comments.ToBondSchema()
+            };
+
+            return bondQsDeclarationAttribute;
+        }
+
         private static QsQualifiedName ToBondSchema(this SyntaxTree.QsQualifiedName qsQualifiedName)
         {
             var bondQsQualifiedName = new QsQualifiedName
@@ -105,6 +131,13 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return bondQsQualifiedName;
         }
 
+        private static QsLocation ToBondSchema(this SyntaxTree.QsLocation qsLocation) =>
+            new QsLocation
+            {
+                Offset = qsLocation.Offset.ToBondSchema(),
+                Range = qsLocation.Range.ToBondSchema()
+            };
+
         private static QsNamespace ToBondSchema(this SyntaxTree.QsNamespace qsNamespace)
         {
             var bondQsNamespace = new QsNamespace
@@ -112,11 +145,13 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Name = qsNamespace.Name.Value
             };
 
+            //
             foreach (var qsNamespaceElement in qsNamespace.Elements)
             {
                 bondQsNamespace.Elements.Add(qsNamespaceElement.ToBondSchema());
             }
 
+            //
             foreach (var sourceFileDocumentation in qsNamespace.Documentation)
             {
                 foreach(var item in sourceFileDocumentation)
@@ -163,6 +198,13 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return bondQsNamespaceElement;
         }
 
+        private static Range ToBondSchema(this DataTypes.Range range) =>
+            new Range
+            {
+                Start = range.Start.ToBondSchema(),
+                End = range.End.ToBondSchema()
+            };
+
         private static DataTypes.Position ToDataTypeObject(this Position position) =>
             DataTypes.Position.Create(position.Line, position.Column);
 
@@ -180,7 +222,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 kind: bondQsCallable.Kind.ToSyntaxtTreeObject(),
                 fullName: bondQsCallable.FullName.ToSyntaxTreeObject(),
                 // TODO: Implement.
-                attributes: Array.Empty<SyntaxTree.QsDeclarationAttribute>().ToImmutableArray(),
+                attributes: bondQsCallable.Attributes.Select(a => a.ToSyntaxTreeObject()).ToImmutableArray(),
                 // TODO: Get this from the bond object.
                 modifiers: new SyntaxTokens.Modifiers(),
                 sourceFile: bondQsCallable.SourceFile.ToNonNullable(),
@@ -221,6 +263,14 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 typeItems: default,
                 documentation: bondQsCustomType.Documentation.ToImmutableArray(),
                 comments: bondQsCustomType.Comments.ToSyntaxTreeObject());
+
+        private static SyntaxTree.QsDeclarationAttribute ToSyntaxTreeObject(this QsDeclarationAttribute bondQsDeclarationAttribute) =>
+            new SyntaxTree.QsDeclarationAttribute(
+                // TODO: Implement.
+                typeId: default,
+                argument: default,
+                offset: bondQsDeclarationAttribute.Offset.ToDataTypeObject(),
+                comments: bondQsDeclarationAttribute.Comments.ToSyntaxTreeObject());
 
         private static SyntaxTree.QsLocation ToSyntaxTreeObject(this QsLocation bondQsLocation) =>
             bondQsLocation != null ?

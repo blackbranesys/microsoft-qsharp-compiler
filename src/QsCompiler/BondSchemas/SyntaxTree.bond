@@ -397,18 +397,6 @@ struct ResolvedInitializer
 
 /*
     
-
-    N.B. This is similar to QsPositionInfo but have not determined whether the two fields represent Line and Column as well.
-*/
-struct PositionInfo
-{
-    5: required int32 A;
-
-    10: required int32 B;
-}
-
-/*
-    
 */
 struct LocalVariableDeclaration
 {
@@ -419,7 +407,7 @@ struct LocalVariableDeclaration
 
     15: required InferredExpressionInformation InferredInformation;
 
-    20: nullable<PositionInfo> Position = nothing;
+    20: nullable<Position> Position = nothing;
 
     25: required QsRangeInfo Range;
 }
@@ -518,7 +506,7 @@ struct QsDeclarationAttribute
 
     10: required TypedExpression Argument;
 
-    15: required PositionInfo Offset;
+    15: required Position Offset;
 
     20: required QsComments Comments;
 }

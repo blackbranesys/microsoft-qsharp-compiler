@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Bond;
+﻿using Bond;
 using Bond.IO.Unsafe;
 using Bond.Protocols;
 
