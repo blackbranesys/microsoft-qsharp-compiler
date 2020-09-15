@@ -592,6 +592,12 @@ type QsLocalSymbol =
 | ValidName of NonNullable<string>
 | InvalidName
 
+    with
+    member this.TryGetValidName(validName: NonNullable<string> byref) =
+        match this with
+        | ValidName value -> validName <- value; true
+        | _ -> false
+
 
 /// used to represent an attribute attached to a type, callable, or specialization declaration.
 type QsDeclarationAttribute = {
