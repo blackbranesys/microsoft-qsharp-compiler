@@ -22,6 +22,29 @@ struct Range
     10: required Position End;
 }
 
+// SyntaxTokens.fs
+
+/*
+    
+*/
+enum AccessModifier
+{
+    DefaultAccess,
+    Internal
+}
+
+/*
+    
+*/
+struct Modifiers
+{
+    5: required AccessModifier Access = DefaultAccess;
+}
+
+// SynatxTree.fs
+
+/*
+
 /*
     
 */
@@ -575,23 +598,6 @@ struct QsSpecialization
 /*
     
 */
-enum AccessModifier
-{
-    DefaultAccess,
-    Internal
-}
-
-/*
-    
-*/
-struct Modifiers
-{
-    5: required AccessModifier Access = DefaultAccess;
-}
-
-/*
-    
-*/
 enum QsTupleKind
 {
     QsTupleItem,
@@ -619,7 +625,7 @@ struct QsCallable
 
     15: required vector<QsDeclarationAttribute> Attributes;
 
-    20: required Modifiers ModifiersSet;
+    20: required Modifiers Modifiers;
 
     25: required string SourceFile;
 
@@ -667,7 +673,7 @@ struct QsCustomType
 
     10: required vector<QsDeclarationAttribute> Attributes;
 
-    15: required Modifiers ModifiersSet;
+    15: required Modifiers Modifiers;
 
     20: required string SourceFile;
 

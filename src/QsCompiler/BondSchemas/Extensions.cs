@@ -32,11 +32,35 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             var namespaces = new List<SyntaxTree.QsNamespace>();
             foreach(var bondNamespace in bondCompilation.Namespaces)
             {
-                namespaces.Add(bondNamespace.ToSyntaxTreeObject());
+                namespaces.Add(bondNamespace.ToCompilerObject());
             }
 
             var entryPoints = Array.Empty<SyntaxTree.QsQualifiedName>();
             return new SyntaxTree.QsCompilation(namespaces.ToImmutableArray(), entryPoints.ToImmutableArray());
+        }
+
+        private static AccessModifier ToBondSchema(this SyntaxTokens.AccessModifier accessModifier)
+        {
+            if (accessModifier.IsDefaultAccess)
+            {
+                return AccessModifier.DefaultAccess;
+            }
+            else if (accessModifier.IsInternal)
+            {
+                return AccessModifier.Internal;
+            }
+            else
+            {
+                throw new ArgumentException($"Unsupported access modifier: {accessModifier}");
+            }
+        }
+
+        private static Modifiers ToBondSchema(this SyntaxTokens.Modifiers modifiers)
+        {
+            return new Modifiers
+            {
+                Access = modifiers.Access.ToBondSchema()
+            };
         }
 
         private static Position ToBondSchema(this DataTypes.Position position) =>
@@ -53,7 +77,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Kind = qsCallable.Kind.ToBondSchema(),
                 FullName = qsCallable.FullName.ToBondSchema(),
                 Attributes = qsCallable.Attributes.Select(a => a.ToBondSchema()).ToList(),
-                // TODO: Implement ModifiersSet
+                Modifiers = qsCallable.Modifiers.ToBondSchema(),
                 SourceFile = qsCallable.SourceFile.Value,
                 Location = qsCallable.Location.IsNull ? null : qsCallable.Location.Item.ToBondSchema(),
                 // TODO: Implement Signature,
@@ -205,36 +229,36 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 End = range.End.ToBondSchema()
             };
 
-        private static DataTypes.Position ToDataTypeObject(this Position position) =>
+        private static SyntaxTokens.AccessModifier ToCompilerObject(this AccessModifier accessModifier) =>
+            accessModifier switch
+            {
+                AccessModifier.DefaultAccess => SyntaxTokens.AccessModifier.DefaultAccess,
+                AccessModifier.Internal => SyntaxTokens.AccessModifier.Internal
+            };
+
+        private static SyntaxTokens.Modifiers ToCompilerObject(this Modifiers modifiers) =>
+            new SyntaxTokens.Modifiers(modifiers.Access.ToCompilerObject());
+        
+        private static DataTypes.Position ToCompilerObject(this Position position) =>
             DataTypes.Position.Create(position.Line, position.Column);
 
-        private static DataTypes.Range ToDataTypeObject(this Range range) =>
-            DataTypes.Range.Create(range.Start.ToDataTypeObject(), range.End.ToDataTypeObject());
-
-        private static NonNullable<string> ToNonNullable(this string str) =>
-            NonNullable<string>.New(str);
-
-        private static QsNullable<SyntaxTree.QsLocation> ToQsNullable(this SyntaxTree.QsLocation qsLocation) =>
-            QsNullable<SyntaxTree.QsLocation>.NewValue(qsLocation);
-
-        private static SyntaxTree.QsCallable ToSyntaxTreeObject(this QsCallable bondQsCallable) =>
+        private static SyntaxTree.QsCallable ToCompilerObject(this QsCallable bondQsCallable) =>
             new SyntaxTree.QsCallable(
-                kind: bondQsCallable.Kind.ToSyntaxtTreeObject(),
-                fullName: bondQsCallable.FullName.ToSyntaxTreeObject(),
+                kind: bondQsCallable.Kind.ToCompilerObject(),
+                fullName: bondQsCallable.FullName.ToCompilerObject(),
                 // TODO: Implement.
-                attributes: bondQsCallable.Attributes.Select(a => a.ToSyntaxTreeObject()).ToImmutableArray(),
-                // TODO: Get this from the bond object.
-                modifiers: new SyntaxTokens.Modifiers(),
+                attributes: bondQsCallable.Attributes.Select(a => a.ToCompilerObject()).ToImmutableArray(),
+                modifiers: bondQsCallable.Modifiers.ToCompilerObject(),
                 sourceFile: bondQsCallable.SourceFile.ToNonNullable(),
-                location: bondQsCallable.Location.ToSyntaxTreeObject().ToQsNullable(),
+                location: bondQsCallable.Location.ToCompilerObject().ToQsNullable(),
                 // TODO: Implement.
                 signature: default,
                 argumentTuple: default,
                 specializations: Array.Empty<SyntaxTree.QsSpecialization>().ToImmutableArray(),
                 documentation: bondQsCallable.Documentation.ToImmutableArray(),
-                comments: bondQsCallable.Comments.ToSyntaxTreeObject());
+                comments: bondQsCallable.Comments.ToCompilerObject());
 
-        private static SyntaxTree.QsCallableKind ToSyntaxtTreeObject(this QsCallableKind bondQsCallableKind) =>
+        private static SyntaxTree.QsCallableKind ToCompilerObject(this QsCallableKind bondQsCallableKind) =>
             bondQsCallableKind switch
             {
                 QsCallableKind.Operation => SyntaxTree.QsCallableKind.Operation,
@@ -243,46 +267,47 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 _ => throw new ArgumentException($"Unsupported Bond QsCallableKind: {bondQsCallableKind}")
             };
 
-        private static SyntaxTree.QsComments ToSyntaxTreeObject(this QsComments bondQsComments) =>
+        private static SyntaxTree.QsComments ToCompilerObject(this QsComments bondQsComments) =>
             new SyntaxTree.QsComments(
                 bondQsComments.OpeningComments.ToImmutableArray(),
                 bondQsComments.ClosingComments.ToImmutableArray());
 
         private static SyntaxTree.QsCustomType ToSyntaxTreeObject(this QsCustomType bondQsCustomType) =>
             new SyntaxTree.QsCustomType(
-                fullName: bondQsCustomType.FullName.ToSyntaxTreeObject(),
+                fullName: bondQsCustomType.FullName.ToCompilerObject(),
                 // TODO: Implement needed extensions.
                 attributes: Array.Empty<SyntaxTree.QsDeclarationAttribute>().ToImmutableArray(),
                 // TODO: Get this from the bond object.
                 modifiers: new SyntaxTokens.Modifiers(),
                 sourceFile: bondQsCustomType.SourceFile.ToNonNullable(),
-                location: bondQsCustomType.Location.ToSyntaxTreeObject().ToQsNullable(),
+                location: bondQsCustomType.Location.ToCompilerObject().ToQsNullable(),
                 // TODO: Implement this.
                 type: default,
                 // TODO: Implement this.
                 typeItems: default,
                 documentation: bondQsCustomType.Documentation.ToImmutableArray(),
-                comments: bondQsCustomType.Comments.ToSyntaxTreeObject());
+                comments: bondQsCustomType.Comments.ToCompilerObject());
 
-        private static SyntaxTree.QsDeclarationAttribute ToSyntaxTreeObject(this QsDeclarationAttribute bondQsDeclarationAttribute) =>
+        private static SyntaxTree.QsDeclarationAttribute ToCompilerObject(this QsDeclarationAttribute bondQsDeclarationAttribute) =>
             new SyntaxTree.QsDeclarationAttribute(
                 // TODO: Implement.
                 typeId: default,
+                // TODO: Implement.
                 argument: default,
-                offset: bondQsDeclarationAttribute.Offset.ToDataTypeObject(),
-                comments: bondQsDeclarationAttribute.Comments.ToSyntaxTreeObject());
+                offset: bondQsDeclarationAttribute.Offset.ToCompilerObject(),
+                comments: bondQsDeclarationAttribute.Comments.ToCompilerObject());
 
-        private static SyntaxTree.QsLocation ToSyntaxTreeObject(this QsLocation bondQsLocation) =>
+        private static SyntaxTree.QsLocation ToCompilerObject(this QsLocation bondQsLocation) =>
             bondQsLocation != null ?
-                new SyntaxTree.QsLocation(bondQsLocation.Offset.ToDataTypeObject(), bondQsLocation.Range.ToDataTypeObject()) :
+                new SyntaxTree.QsLocation(bondQsLocation.Offset.ToCompilerObject(), bondQsLocation.Range.ToCompilerObject()) :
                 null;
 
-        private static SyntaxTree.QsNamespace ToSyntaxTreeObject(this QsNamespace bondQsNamespace)
+        private static SyntaxTree.QsNamespace ToCompilerObject(this QsNamespace bondQsNamespace)
         {
             var elements = new List<SyntaxTree.QsNamespaceElement>();
             foreach(var bondNamespaceElement in bondQsNamespace.Elements)
             {
-                elements.Add(bondNamespaceElement.ToSyntaxTreeObject());
+                elements.Add(bondNamespaceElement.ToCompilerObject());
             }
 
             return new SyntaxTree.QsNamespace(
@@ -293,11 +318,11 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                     p => p.DocumentationInstances.ToImmutableArray()));
         }
 
-        private static SyntaxTree.QsNamespaceElement ToSyntaxTreeObject(this QsNamespaceElement bondQsNamespaceElement)
+        private static SyntaxTree.QsNamespaceElement ToCompilerObject(this QsNamespaceElement bondQsNamespaceElement)
         {
             if (bondQsNamespaceElement.Kind == QsNamespaceElementKind.QsCallable)
             {
-                return SyntaxTree.QsNamespaceElement.NewQsCallable(bondQsNamespaceElement.Callable.ToSyntaxTreeObject());
+                return SyntaxTree.QsNamespaceElement.NewQsCallable(bondQsNamespaceElement.Callable.ToCompilerObject());
             }
             else if (bondQsNamespaceElement.Kind == QsNamespaceElementKind.QsCustomType)
             {
@@ -309,11 +334,20 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             }
         }
 
-        private static SyntaxTree.QsQualifiedName ToSyntaxTreeObject(this QsQualifiedName bondQsQualifiedName)
+        private static SyntaxTree.QsQualifiedName ToCompilerObject(this QsQualifiedName bondQsQualifiedName)
         {
             return new SyntaxTree.QsQualifiedName(
                 bondQsQualifiedName.Name.ToNonNullable(),
                 bondQsQualifiedName.Namespace.ToNonNullable());
         }
+
+        private static DataTypes.Range ToCompilerObject(this Range range) =>
+            DataTypes.Range.Create(range.Start.ToCompilerObject(), range.End.ToCompilerObject());
+
+        private static NonNullable<string> ToNonNullable(this string str) =>
+            NonNullable<string>.New(str);
+
+        private static QsNullable<SyntaxTree.QsLocation> ToQsNullable(this SyntaxTree.QsLocation qsLocation) =>
+            QsNullable<SyntaxTree.QsLocation>.NewValue(qsLocation);
     }
 }
