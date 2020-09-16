@@ -701,11 +701,11 @@ struct QsNamespaceElement
 /*
     
 */
-struct QsDocumentationItem
+struct QsSourceFileDocumentation
 {
-    5: required string SourceFileName;
+    5: required string FileName;
 
-    10: required vector<string> DocumentationInstances;
+    10: required vector<string> DocumentationItems;
 }
 
 /*
@@ -717,7 +717,7 @@ struct QsNamespace
 
     10: required vector<QsNamespaceElement> Elements;
 
-    15: required list<QsDocumentationItem> Documentation;
+    15: required list<QsSourceFileDocumentation> Documentation;
 }
 
 /*

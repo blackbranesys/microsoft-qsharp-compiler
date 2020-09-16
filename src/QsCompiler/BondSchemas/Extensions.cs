@@ -9,36 +9,26 @@ using Microsoft.Quantum.QsCompiler.DataTypes;
 
 namespace Microsoft.Quantum.QsCompiler.BondSchemas
 {
+    // TODO: Add documentation.
+    using QsDocumentation = ILookup<NonNullable<string>, ImmutableArray<string>>;
+
+    // TODO: Add documentation.
     public static class Extensions
     {
-        public static QsCompilation CreateBondCompilation(SyntaxTree.QsCompilation qsCompilation)
-        {
-            var bondQscompilation = new QsCompilation { };
-            foreach (var qsNamespace in qsCompilation.Namespaces)
+        // TODO: Add documentation.
+        public static QsCompilation CreateBondCompilation(SyntaxTree.QsCompilation qsCompilation) =>
+            new QsCompilation
             {
-                bondQscompilation.Namespaces.Add(qsNamespace.ToBondSchema());
-            }
+                Namespaces = qsCompilation.Namespaces.Select(n => n.ToBondSchema()).ToList(),
+                EntryPoints = qsCompilation.EntryPoints.Select(e => e.ToBondSchema()).ToList()
+            };
 
-            foreach (var entryPoint in qsCompilation.EntryPoints)
-            {
-                bondQscompilation.EntryPoints.Add(entryPoint.ToBondSchema());
-            }
-
-            return bondQscompilation;
-        }
-
-        public static SyntaxTree.QsCompilation CreateQsCompilation(QsCompilation bondCompilation)
-        {
-            var namespaces = new List<SyntaxTree.QsNamespace>();
-            foreach(var bondNamespace in bondCompilation.Namespaces)
-            {
-                namespaces.Add(bondNamespace.ToCompilerObject());
-            }
-
-            // TODO: Implement EntryPoints.
-            var entryPoints = Array.Empty<SyntaxTree.QsQualifiedName>();
-            return new SyntaxTree.QsCompilation(namespaces.ToImmutableArray(), entryPoints.ToImmutableArray());
-        }
+        // TODO: Add documentation.
+        public static SyntaxTree.QsCompilation CreateQsCompilation(QsCompilation bondCompilation) =>
+            new SyntaxTree.QsCompilation(
+                namespaces: bondCompilation.Namespaces.Select(n => n.ToCompilerObject()).ToImmutableArray(),
+                // TODO: Implement EntryPoints.
+                entryPoints: Array.Empty<SyntaxTree.QsQualifiedName>().ToImmutableArray());
 
         private static AccessModifier ToBondSchema(this SyntaxTokens.AccessModifier accessModifier)
         {
@@ -56,13 +46,11 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             }
         }
 
-        private static Modifiers ToBondSchema(this SyntaxTokens.Modifiers modifiers)
-        {
-            return new Modifiers
+        private static Modifiers ToBondSchema(this SyntaxTokens.Modifiers modifiers) =>
+            new Modifiers
             {
                 Access = modifiers.Access.ToBondSchema()
             };
-        }
 
         private static Position ToBondSchema(this DataTypes.Position position) =>
             new Position
@@ -71,9 +59,8 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Column = position.Column
             };
 
-        private static QsCallable ToBondSchema(this SyntaxTree.QsCallable qsCallable)
-        {
-            var bondQsCallable = new QsCallable
+        private static QsCallable ToBondSchema(this SyntaxTree.QsCallable qsCallable) =>
+            new QsCallable
             {
                 Kind = qsCallable.Kind.ToBondSchema(),
                 FullName = qsCallable.FullName.ToBondSchema(),
@@ -82,14 +69,11 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 SourceFile = qsCallable.SourceFile.Value,
                 Location = qsCallable.Location.IsNull ? null : qsCallable.Location.Item.ToBondSchema(),
                 Signature = qsCallable.Signature.ToBondSchema(),
-                // TODO: Implement ArgumentTuple,
+                // TODO: Implement ArgumentTuple.
                 // TODO: Implement Specializations.
                 Documentation = qsCallable.Documentation.ToList(),
                 Comments = qsCallable.Comments.ToBondSchema()
             };
-
-            return bondQsCallable;
-        }
 
         private static QsCallableKind ToBondSchema(this SyntaxTree.QsCallableKind qsCallableKind)
         {
@@ -109,32 +93,29 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             throw new ArgumentException($"Unsupported QsCallableKind {qsCallableKind}");
         }
 
-        private static QsComments ToBondSchema(this SyntaxTree.QsComments qsComments)
-        {
-            var bondQsComments = new QsComments
+        private static QsComments ToBondSchema(this SyntaxTree.QsComments qsComments) =>
+            new QsComments
             {
                 OpeningComments = qsComments.OpeningComments.ToList(),
                 ClosingComments = qsComments.ClosingComments.ToList()
             };
 
-            return bondQsComments;
-        }
-
-        private static QsCustomType ToBondSchema(this SyntaxTree.QsCustomType qsCustomType)
-        {
-            var bondQsCustomType = new QsCustomType
+        private static QsCustomType ToBondSchema(this SyntaxTree.QsCustomType qsCustomType) =>
+            new QsCustomType
             {
                 FullName = qsCustomType.FullName.ToBondSchema(),
+                Attributes = qsCustomType.Attributes.Select(a => a.ToBondSchema()).ToList(),
+                Modifiers = qsCustomType.Modifiers.ToBondSchema(),
+                SourceFile = qsCustomType.SourceFile.Value,
+                // TODO: Implement Location.
+                // TODO: Implement Type.
+                // TODO: Implement TypeItems.
                 Documentation = qsCustomType.Documentation.ToList(),
                 Comments = qsCustomType.Comments.ToBondSchema()
             };
 
-            return bondQsCustomType;
-        }
-
-        private static QsDeclarationAttribute ToBondSchema(this SyntaxTree.QsDeclarationAttribute qsDeclarationAttribute)
-        {
-            var bondQsDeclarationAttribute = new QsDeclarationAttribute
+        private static QsDeclarationAttribute ToBondSchema(this SyntaxTree.QsDeclarationAttribute qsDeclarationAttribute) =>
+            new QsDeclarationAttribute
             {
                 TypeId = qsDeclarationAttribute.TypeId.IsNull ? null : qsDeclarationAttribute.TypeId.Item.ToBondSchema(),
                 // TODO: Implement Argument
@@ -142,19 +123,12 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Comments = qsDeclarationAttribute.Comments.ToBondSchema()
             };
 
-            return bondQsDeclarationAttribute;
-        }
-
-        private static QsQualifiedName ToBondSchema(this SyntaxTree.QsQualifiedName qsQualifiedName)
-        {
-            var bondQsQualifiedName = new QsQualifiedName
+        private static QsQualifiedName ToBondSchema(this SyntaxTree.QsQualifiedName qsQualifiedName) =>
+            new QsQualifiedName
             {
                 Namespace = qsQualifiedName.Namespace.Value,
                 Name = qsQualifiedName.Name.Value
             };
-
-            return bondQsQualifiedName;
-        }
 
         private static QsLocalSymbol ToBondSchema(this SyntaxTree.QsLocalSymbol qsLocalSymbol)
         {
@@ -187,37 +161,13 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Range = qsLocation.Range.ToBondSchema()
             };
 
-        private static QsNamespace ToBondSchema(this SyntaxTree.QsNamespace qsNamespace)
-        {
-            var bondQsNamespace = new QsNamespace
+        private static QsNamespace ToBondSchema(this SyntaxTree.QsNamespace qsNamespace) =>
+            new QsNamespace
             {
-                Name = qsNamespace.Name.Value
+                Name = qsNamespace.Name.Value,
+                Elements = qsNamespace.Elements.Select(e => e.ToBondSchema()).ToList(),
+                Documentation = qsNamespace.Documentation.ToBondSchema()
             };
-
-            //
-            foreach (var qsNamespaceElement in qsNamespace.Elements)
-            {
-                bondQsNamespace.Elements.Add(qsNamespaceElement.ToBondSchema());
-            }
-
-            //
-            foreach (var sourceFileDocumentation in qsNamespace.Documentation)
-            {
-                foreach(var item in sourceFileDocumentation)
-                {
-                    var qsDocumentationItem = new QsDocumentationItem
-                    {
-                        SourceFileName = sourceFileDocumentation.Key.Value,
-                        DocumentationInstances = item.ToList()
-                    };
-
-                    bondQsNamespace.Documentation.AddLast(qsDocumentationItem);
-                }
-
-            }
-
-            return bondQsNamespace;
-        }
 
         private static QsNamespaceElement ToBondSchema(this SyntaxTree.QsNamespaceElement qsNamespaceElement)
         {
@@ -247,6 +197,26 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             return bondQsNamespaceElement;
         }
 
+        private static LinkedList<QsSourceFileDocumentation> ToBondSchema(this QsDocumentation qsDocumentation)
+        {
+            var documentationList = new LinkedList<QsSourceFileDocumentation>();
+            foreach (var qsSourceFileDocumentation in qsDocumentation)
+            {
+                foreach (var items in qsSourceFileDocumentation)
+                {
+                    var qsDocumentationItem = new QsSourceFileDocumentation
+                    {
+                        FileName = qsSourceFileDocumentation.Key.Value,
+                        DocumentationItems = items.ToList()
+                    };
+
+                    documentationList.AddLast(qsDocumentationItem);
+                }
+            }
+
+            return documentationList;
+        }
+
         private static Range ToBondSchema(this DataTypes.Range range) =>
             new Range
             {
@@ -258,9 +228,9 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             new ResolvedSignature
             {
                 TypeParameters = resolvedSignature.TypeParameters.Select(tp => tp.ToBondSchema()).ToList()
-                // Implement ArgumentType
-                // Implement ReturnType
-                // Implement Information
+                // TODO: Implement ArgumentType
+                // TODO: Implement ReturnType
+                // TODO: Implement Information
             };
 
         private static UserDefinedType ToBondSchema(this SyntaxTree.UserDefinedType userDefinedType) =>
@@ -356,8 +326,8 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 bondQsNamespace.Name.ToNonNullable(),
                 elements.ToImmutableArray(),
                 bondQsNamespace.Documentation.ToLookup(
-                    p => p.SourceFileName.ToNonNullable(),
-                    p => p.DocumentationInstances.ToImmutableArray()));
+                    p => p.FileName.ToNonNullable(),
+                    p => p.DocumentationItems.ToImmutableArray()));
         }
 
         private static SyntaxTree.QsNamespaceElement ToCompilerObject(this QsNamespaceElement bondQsNamespaceElement)
