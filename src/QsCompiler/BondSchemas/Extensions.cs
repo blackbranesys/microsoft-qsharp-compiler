@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using Microsoft.Quantum.QsCompiler.DataTypes;
 
@@ -208,6 +209,18 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             this SyntaxTokens.QsTuple<SyntaxTree.LocalVariableDeclaration<SyntaxTree.QsLocalSymbol>> localVariableDeclaration) =>
             localVariableDeclaration.ToBondSchemaGeneric(ToBondSchema);
 
+        private static QsTypeKindDetails<ResolvedType, UserDefinedType, QsTypeParameter, CallableInformation> ToBondSchema(
+            this SyntaxTokens.QsTypeKind<SyntaxTree.ResolvedType, SyntaxTree.UserDefinedType, SyntaxTree.QsTypeParameter, SyntaxTree.CallableInformation> qsTypeKind) =>
+            qsTypeKind.ToBondSchemaGeneric
+                <ResolvedType,
+                 UserDefinedType,
+                 QsTypeParameter,
+                 CallableInformation,
+                 SyntaxTree.ResolvedType,
+                 SyntaxTree.UserDefinedType,
+                 SyntaxTree.QsTypeParameter,
+                 SyntaxTree.CallableInformation>();
+
         private static LinkedList<QsSourceFileDocumentation> ToBondSchema(this QsDocumentation qsDocumentation)
         {
             var documentationList = new LinkedList<QsSourceFileDocumentation>();
@@ -244,6 +257,12 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 // TODO: Implement Information
             };
 
+        private static ResolvedType ToBondSchema(this SyntaxTree.ResolvedType resolvedType) =>
+            new ResolvedType
+            {
+                TypeKind = resolvedType.Resolution.ToBondSchema()
+            };
+
         private static UserDefinedType ToBondSchema(this SyntaxTree.UserDefinedType userDefinedType) =>
             new UserDefinedType
             {
@@ -258,7 +277,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             new LocalVariableDeclaration<BondType>
             {
                 VariableName = toBondSchema(localVariableDeclaration.VariableName),
-                // TODO: Implement Type.
+                Type = localVariableDeclaration.Type.ToBondSchema(),
                 // TODO: Implement InferredInformation.
                 Position = localVariableDeclaration.Position.IsNull ?
                     null :
@@ -270,7 +289,6 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             this SyntaxTokens.QsTuple<CompilerType> qsTuple,
             Func<CompilerType, BondType> toBondSchema)
         {
-            Console.WriteLine($"{typeof(BondType)}, {typeof(CompilerType)}");
             CompilerType item = default;
             ImmutableArray<SyntaxTokens.QsTuple<CompilerType>> items;
             if (qsTuple.TryGetQsTupleItem(ref item))
@@ -293,6 +311,108 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             {
                 throw new ArgumentException($"Unsupported QsTuple kind {qsTuple}");
             }
+        }
+
+        // TODO: Maybe not needed.
+        private static QsTypeKind ToBondSchemaGeneric<
+            CompilerDataType,
+            CompilerUdtType,
+            CompilerTParamType,
+            CompilerCharacteristicsType>(
+            this SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType> qsTypeKind) =>
+            qsTypeKind.Tag switch
+            {
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.ArrayType => QsTypeKind.ArrayType,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.BigInt => QsTypeKind.BigInt,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Bool => QsTypeKind.Bool,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Double => QsTypeKind.Double,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Function => QsTypeKind.Function,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Int => QsTypeKind.Int,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.InvalidType => QsTypeKind.InvalidType,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.MissingType => QsTypeKind.MissingType,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Operation => QsTypeKind.Operation,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Pauli => QsTypeKind.Pauli,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Qubit => QsTypeKind.Qubit,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Range => QsTypeKind.Range,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Result => QsTypeKind.Result,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.String => QsTypeKind.String,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.TupleType => QsTypeKind.TupleType,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.TypeParameter => QsTypeKind.TypeParameter,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.UnitType => QsTypeKind.UnitType,
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.UserDefinedType => QsTypeKind.UserDefinedType,
+                _ => throw new ArgumentException($"Unsupported QsTypeKind: {qsTypeKind.Tag}")
+            };
+
+        private static QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType> ToBondSchemaGeneric
+            <BondDataType,
+             BondUdtType,
+             BondTParamType,
+             BondCharacteristicsType,
+             CompilerDataType,
+             CompilerUdtType,
+             CompilerTParamType,
+             CompilerCharacteristicsType>
+            (this SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType> qsTypeKind)
+        {
+            var bondQsTypeKindDetails = qsTypeKind.Tag switch
+            {
+                var tag when
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.BigInt ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Bool ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Double ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Int ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.InvalidType ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.MissingType ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Pauli ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Qubit ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Range ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Result ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.String ||
+                    tag == SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.UnitType =>
+                        new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                        {
+                            Kind = qsTypeKind.ToBondSchemaGeneric()
+                        },
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.ArrayType =>
+                    new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                    {
+                        Kind = QsTypeKind.ArrayType
+                        // TODO: Implement ArrayType.
+                    },
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Function =>
+                    new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                    {
+                        Kind = QsTypeKind.Function
+                        // TODO: Implement Function.
+                    },
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Operation =>
+                    new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                    {
+                        Kind = QsTypeKind.Operation
+                        // TODO: Implement Operation.
+                    },
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.TupleType =>
+                    new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                    {
+                        Kind = QsTypeKind.TupleType
+                        // TODO: Implement TupleType.
+                    },
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.TypeParameter =>
+                    new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                    {
+                        Kind = QsTypeKind.TypeParameter
+                        // TODO: Implement TypeParameter.
+                    },
+                SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.UserDefinedType =>
+                    new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
+                    {
+                        Kind = QsTypeKind.UserDefinedType
+                        // TODO: Implement UserDefinedType.
+                    },
+                _ => throw new ArgumentException($"Unsupported QsTypeKind: {qsTypeKind.Tag}")
+            };
+
+            return bondQsTypeKindDetails;
         }
 
 

@@ -279,11 +279,57 @@ enum QsTypeKind {
 /*
     
 */
-struct ResolvedType
+struct QsTypeKindFunction<DataType>
+{
+    5: required DataType DataA;
+
+    10: required DataType DataB;
+}
+
+/*
+    
+*/
+struct QsTypeKindOperation<DataType, CharacteristicsType>
+{
+    5: required DataType DataA;
+
+    10: required DataType DataB;
+
+    15: required CharacteristicsType Characteristics;
+}
+
+/*
+    
+*/
+struct QsTypeKindDetails<DataType, UdtType, TParamType, CharacteristicsType>
 {
     5: required QsTypeKind Kind = InvalidType;
 
-    // TODO: Add a field per 'Kind'.
+    //
+    10: nullable<DataType> ArrayType = nothing;
+
+    //
+    15: nullable<vector<DataType>> TupleType = nothing;
+
+    //
+    20: nullable<UdtType> UserDefinedType = nothing;
+
+    //
+    25: nullable<TParamType> TypeParameter = nothing;
+
+    //
+    30: nullable<QsTypeKindOperation<DataType, CharacteristicsType>> Operation = nothing;
+
+    // 
+    35: nullable<QsTypeKindFunction<DataType>> Function = nothing;
+}
+
+/*
+    
+*/
+struct ResolvedType
+{
+    5: required QsTypeKindDetails<ResolvedType, UserDefinedType, QsTypeParameter, CallableInformation> TypeKind;
 }
 
 /*
