@@ -185,6 +185,16 @@ type QsTuple<'Item> =
 | QsTupleItem of 'Item
 | QsTuple of ImmutableArray<QsTuple<'Item>> 
 
+    with
+    member this.TryGetQsTupleItem(qsTupleItem: 'Item byref) =
+        match this with
+        | QsTupleItem value -> qsTupleItem <- value; true
+        | _ -> false
+    member this.TryGetQsTuple(qsTuple: ImmutableArray<QsTuple<'Item>> byref) =
+        match this with
+        | QsTuple value -> qsTuple <- value; true
+        | _ -> false
+
 type CallableSignature = { 
     TypeParameters : ImmutableArray<QsSymbol>
     Argument : QsTuple<QsSymbol * QsType>

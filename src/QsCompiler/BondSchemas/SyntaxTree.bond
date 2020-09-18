@@ -407,10 +407,9 @@ struct ResolvedInitializer
 /*
     
 */
-struct LocalVariableDeclaration
+struct LocalVariableDeclaration<NameType>
 {
-    // TODO: This is not necessarily a string, verify it later.
-    5: required string VariableName;
+    5: required NameType VariableName;
 
     10: required ResolvedType Type;
 
@@ -426,7 +425,7 @@ struct LocalVariableDeclaration
 */
 struct LocalDeclarations
 {
-    5: required vector<LocalVariableDeclaration> Variables;
+    5: required vector<LocalVariableDeclaration<string>> Variables;
 
     // TODO: Maybe this needs more data but not sure yet.
 }
@@ -593,11 +592,13 @@ enum QsTupleKind
 /*
     
 */
-struct QsTuple
+struct QsTuple<T>
 {
     5: required QsTupleKind Kind = QsTupleItem;
 
-    // TODO: Add a field per kind. This might be a templated structure.
+    10: nullable<T> Item = nothing;
+
+    15: nullable<vector<QsTuple<T>>> Items = nothing;
 }
 
 /*
@@ -619,8 +620,7 @@ struct QsCallable
 
     35: required ResolvedSignature Signature;
 
-    // TODO: This should be a templated QsTuple type.
-    40: required QsTuple ArgumentTuple;
+    40: required QsTuple<LocalVariableDeclaration<QsLocalSymbol>> ArgumentTuple;
 
     45: required vector<QsSpecialization> Specializations;
 
@@ -645,7 +645,7 @@ struct QsTypeItem
 {
     5: required QsTypeItemKind Kind = Named;
 
-    10: nullable<LocalVariableDeclaration> NamedItem = nothing;
+    10: nullable<LocalVariableDeclaration<string>> NamedItem = nothing;
 
     15: nullable<ResolvedType> AnonymousItem = nothing;
 }
@@ -668,7 +668,7 @@ struct QsCustomType
     30: required ResolvedType Type;
 
     // TODO: This should be a templated tuple.
-    35: required QsTuple TypeItems;
+    35: required QsTuple<QsTypeItem> TypeItems;
 
     40: required vector<string> Documentation;
 

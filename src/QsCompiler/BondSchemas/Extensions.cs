@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.Quantum.QsCompiler.DataTypes;
 
 namespace Microsoft.Quantum.QsCompiler.BondSchemas
@@ -71,7 +72,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 SourceFile = qsCallable.SourceFile.Value,
                 Location = qsCallable.Location.IsNull ? null : qsCallable.Location.Item.ToBondSchema(),
                 Signature = qsCallable.Signature.ToBondSchema(),
-                // TODO: Implement ArgumentTuple.
+                ArgumentTuple = qsCallable.ArgumentTuple.ToBondSchema(),
                 // TODO: Implement Specializations.
                 Documentation = qsCallable.Documentation.ToList(),
                 Comments = qsCallable.Comments.ToBondSchema()
@@ -156,6 +157,10 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             }
         }
 
+        private static LocalVariableDeclaration<QsLocalSymbol> ToBondSchema(
+            this SyntaxTree.LocalVariableDeclaration<SyntaxTree.QsLocalSymbol> localVariableDeclaration) =>
+            localVariableDeclaration.ToBondSchemaGeneric(ToBondSchema);
+
         private static QsLocation ToBondSchema(this SyntaxTree.QsLocation qsLocation) =>
             new QsLocation
             {
@@ -198,6 +203,10 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
 
             return bondQsNamespaceElement;
         }
+
+        private static QsTuple<LocalVariableDeclaration<QsLocalSymbol>> ToBondSchema(
+            this SyntaxTokens.QsTuple<SyntaxTree.LocalVariableDeclaration<SyntaxTree.QsLocalSymbol>> localVariableDeclaration) =>
+            localVariableDeclaration.ToBondSchemaGeneric(ToBondSchema);
 
         private static LinkedList<QsSourceFileDocumentation> ToBondSchema(this QsDocumentation qsDocumentation)
         {
@@ -242,6 +251,50 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Name = userDefinedType.Name.Value,
                 Range = userDefinedType.Range.IsNull ? null : userDefinedType.Range.Item.ToBondSchema()
             };
+
+        private static LocalVariableDeclaration<BondType> ToBondSchemaGeneric<BondType, CompilerType>(
+            this SyntaxTree.LocalVariableDeclaration<CompilerType> localVariableDeclaration,
+            Func<CompilerType, BondType> toBondSchema) =>
+            new LocalVariableDeclaration<BondType>
+            {
+                VariableName = toBondSchema(localVariableDeclaration.VariableName),
+                // TODO: Implement Type.
+                // TODO: Implement InferredInformation.
+                Position = localVariableDeclaration.Position.IsNull ?
+                    null :
+                    localVariableDeclaration.Position.Item.ToBondSchema(),
+                Range = localVariableDeclaration.Range.ToBondSchema()
+            };
+
+        private static QsTuple<BondType> ToBondSchemaGeneric<BondType, CompilerType>(
+            this SyntaxTokens.QsTuple<CompilerType> qsTuple,
+            Func<CompilerType, BondType> toBondSchema)
+        {
+            Console.WriteLine($"{typeof(BondType)}, {typeof(CompilerType)}");
+            CompilerType item = default;
+            ImmutableArray<SyntaxTokens.QsTuple<CompilerType>> items;
+            if (qsTuple.TryGetQsTupleItem(ref item))
+            {
+                return new QsTuple<BondType>
+                {
+                    Kind = QsTupleKind.QsTupleItem,
+                    Item = toBondSchema(item)
+                };
+            }
+            else if (qsTuple.TryGetQsTuple(ref items))
+            {
+                return new QsTuple<BondType>
+                {
+                    Kind = QsTupleKind.QsTuple,
+                    Items = items.Select(i => i.ToBondSchemaGeneric(toBondSchema)).ToList()
+                };
+            }
+            else
+            {
+                throw new ArgumentException($"Unsupported QsTuple kind {qsTuple}");
+            }
+        }
+
 
         private static DataTypes.Position ToCompilerObject(this Position position) =>
             DataTypes.Position.Create(position.Line, position.Column);
