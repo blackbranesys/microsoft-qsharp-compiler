@@ -8,12 +8,13 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using Microsoft.Quantum.QsCompiler.DataTypes;
+// TODO: Add documentation.
+
+using QsDocumentation = System.Linq.ILookup<Microsoft.Quantum.QsCompiler.DataTypes.NonNullable<string>, System.Collections.Immutable.ImmutableArray<string>>;
+using CompilerResolvedTypeOperation = System.Tuple<System.Tuple<Microsoft.Quantum.QsCompiler.SyntaxTree.ResolvedType, Microsoft.Quantum.QsCompiler.SyntaxTree.ResolvedType>, Microsoft.Quantum.QsCompiler.SyntaxTree.CallableInformation>;
 
 namespace Microsoft.Quantum.QsCompiler.BondSchemas
 {
-    // TODO: Add documentation.
-    using QsDocumentation = ILookup<NonNullable<string>, ImmutableArray<string>>;
-
     // TODO: Add documentation.
     public static class Extensions
     {
@@ -49,6 +50,13 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 throw new ArgumentException($"Unsupported access modifier: {accessModifier}");
             }
         }
+
+        private static CallableInformation ToBondSchema(this SyntaxTree.CallableInformation callableInformation) =>
+            new CallableInformation
+            {
+                // TODO: Implement Characteristics.
+                // TODO: Implement InferredInformation.
+            };
 
         private static Modifiers ToBondSchema(this SyntaxTokens.Modifiers modifiers) =>
             new Modifiers
@@ -220,7 +228,18 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                  SyntaxTree.UserDefinedType,
                  SyntaxTree.QsTypeParameter,
                  SyntaxTree.CallableInformation>(
+            ToBondSchema,
+            ToBondSchema,
+            ToBondSchema,
             ToBondSchema);
+
+        private static QsTypeParameter ToBondSchema(this SyntaxTree.QsTypeParameter qsTypeParameter) =>
+            new QsTypeParameter
+            {
+                Origin = qsTypeParameter.Origin.ToBondSchema(),
+                TypeName = qsTypeParameter.TypeName.Value,
+                Range = qsTypeParameter.Range.IsNull ? null : qsTypeParameter.Range.Item.ToBondSchema()
+            };
 
         private static LinkedList<QsSourceFileDocumentation> ToBondSchema(this QsDocumentation qsDocumentation)
         {
@@ -353,18 +372,64 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
              CompilerTParamType,
              CompilerCharacteristicsType>(
                 this SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType> qsTypeKind,
-                // TODO: this should not be null.
-                Func<CompilerDataType, BondDataType> dataTypeTranslator)
+                Func<CompilerDataType, BondDataType> dataTypeTranslator,
+                Func<CompilerUdtType, BondUdtType> udtTypeTranslator,
+                Func<CompilerTParamType, BondTParamType> tParamTypeTranslator,
+                Func<CompilerCharacteristicsType, BondCharacteristicsType> characteristicsTypeTranslator)
             where BondDataType : class
             where BondUdtType : class
+            where BondTParamType : class
+            where BondCharacteristicsType : class
             where CompilerDataType : class
             where CompilerUdtType : class
+            where CompilerTParamType : class
+            where CompilerCharacteristicsType : class
         {
+            
             BondDataType bondArrayType = null;
+            QsTypeKindFunction<BondDataType> bondFunction = null;
+            QsTypeKindOperation<BondDataType, BondCharacteristicsType> bondOperation = null;
+            List<BondDataType> bondTupleType = null;
+            BondTParamType bondTypeParameter = null;
+            BondUdtType bondUserDefinedType = null;
             CompilerDataType compilerArrayType = null;
+            Tuple<CompilerDataType, CompilerDataType> compilerFunction = null;
+            Tuple<Tuple<CompilerDataType, CompilerDataType>, CompilerCharacteristicsType> compilerOperation = null;
+            ImmutableArray<CompilerDataType> compilerTupleType;
+            CompilerTParamType compilerTyperParameter = null;
+            CompilerUdtType compilerUdtType = null;
             if (qsTypeKind.TryGetArrayType(ref compilerArrayType))
             {
                 bondArrayType = dataTypeTranslator(compilerArrayType);
+            }
+            else if (qsTypeKind.TryGetFunction(ref compilerFunction))
+            {
+                bondFunction = new QsTypeKindFunction<BondDataType>
+                {
+                    DataA = dataTypeTranslator(compilerFunction.Item1),
+                    DataB = dataTypeTranslator(compilerFunction.Item2)
+                };
+            }
+            else if (qsTypeKind.TryGetOperation(ref compilerOperation))
+            {
+                bondOperation = new QsTypeKindOperation<BondDataType, BondCharacteristicsType>
+                {
+                    DataA = dataTypeTranslator(compilerOperation.Item1.Item1),
+                    DataB = dataTypeTranslator(compilerOperation.Item1.Item2),
+                    Characteristics = characteristicsTypeTranslator(compilerOperation.Item2)
+                };
+            }
+            else if (qsTypeKind.TryGetTupleType(ref compilerTupleType))
+            {
+                bondTupleType = compilerTupleType.Select(t => dataTypeTranslator(t)).ToList();
+            }
+            else if (qsTypeKind.TryGetTypeParameter(ref compilerTyperParameter))
+            {
+                bondTypeParameter = tParamTypeTranslator(compilerTyperParameter);
+            }
+            else if (qsTypeKind.TryGetUserDefinedType(ref compilerUdtType))
+            {
+                bondUserDefinedType = udtTypeTranslator(compilerUdtType);
             }
 
             // TODO: Implement additional kinds.
@@ -397,32 +462,32 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Function =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
                     {
-                        Kind = QsTypeKind.Function
-                        // TODO: Implement Function.
+                        Kind = QsTypeKind.Function,
+                        Function = bondFunction ?? throw new InvalidOperationException($"Function cannot be null when Kind is {QsTypeKind.Function}")
                     },
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Operation =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
                     {
-                        Kind = QsTypeKind.Operation
-                        // TODO: Implement Operation.
+                        Kind = QsTypeKind.Operation,
+                        Operation = bondOperation ?? throw new InvalidOperationException($"Operation cannot be null when Kind is {QsTypeKind.Operation}")
                     },
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.TupleType =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
                     {
-                        Kind = QsTypeKind.TupleType
-                        // TODO: Implement TupleType.
+                        Kind = QsTypeKind.TupleType,
+                        TupleType = bondTupleType ?? throw new InvalidOperationException($"TupleType cannot be null when Kind is {QsTypeKind.TupleType}")
                     },
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.TypeParameter =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
                     {
-                        Kind = QsTypeKind.TypeParameter
-                        // TODO: Implement TypeParameter.
+                        Kind = QsTypeKind.TypeParameter,
+                        TypeParameter = bondTypeParameter ?? throw new InvalidOperationException($"TypeParameter cannot be null when Kind is {QsTypeKind.TypeParameter}")
                     },
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.UserDefinedType =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
                     {
-                        Kind = QsTypeKind.UserDefinedType
-                        // TODO: Implement UserDefinedType.
+                        Kind = QsTypeKind.UserDefinedType,
+                        UserDefinedType = bondUserDefinedType ?? throw new InvalidOperationException($"UserDefinedType cannot be null when Kind is {QsTypeKind.UserDefinedType}")
                     },
                 _ => throw new ArgumentException($"Unsupported QsTypeKind: {qsTypeKind.Tag}")
             };

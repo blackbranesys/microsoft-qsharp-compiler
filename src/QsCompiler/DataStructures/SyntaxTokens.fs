@@ -100,6 +100,14 @@ type QsTypeKind<'Type,'UdtName,'TParam, 'Characteristics> =
         match this with
         | TypeParameter value -> typeParameter <- value; true
         | _ -> false
+    member this.TryGetOperation(operation: (('Type * 'Type) * 'Characteristics) byref) =
+        match this with
+        | Operation((typeA ,typeB), characteristics) -> operation <- ((typeA, typeB), characteristics); true
+        | _ -> false
+    member this.TryGetFunction(functionObject: ('Type * 'Type) byref) =
+        match this with
+        | Function(typeA ,typeB) -> functionObject <- (typeA ,typeB); true
+        | _ -> false
 
 type QsType = {
     Type : QsTypeKind<QsType, QsSymbol, QsSymbol, Characteristics>
