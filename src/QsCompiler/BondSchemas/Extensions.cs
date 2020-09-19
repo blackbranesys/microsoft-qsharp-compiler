@@ -219,7 +219,8 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                  SyntaxTree.ResolvedType,
                  SyntaxTree.UserDefinedType,
                  SyntaxTree.QsTypeParameter,
-                 SyntaxTree.CallableInformation>();
+                 SyntaxTree.CallableInformation>(
+            ToBondSchema);
 
         private static LinkedList<QsSourceFileDocumentation> ToBondSchema(this QsDocumentation qsDocumentation)
         {
@@ -313,7 +314,6 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             }
         }
 
-        // TODO: Maybe not needed.
         private static QsTypeKind ToBondSchemaGeneric<
             CompilerDataType,
             CompilerUdtType,
@@ -351,9 +351,24 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
              CompilerDataType,
              CompilerUdtType,
              CompilerTParamType,
-             CompilerCharacteristicsType>
-            (this SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType> qsTypeKind)
+             CompilerCharacteristicsType>(
+                this SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType> qsTypeKind,
+                // TODO: this should not be null.
+                Func<CompilerDataType, BondDataType> dataTypeTranslator)
+            where BondDataType : class
+            where BondUdtType : class
+            where CompilerDataType : class
+            where CompilerUdtType : class
         {
+            BondDataType bondArrayType = null;
+            CompilerDataType compilerArrayType = null;
+            if (qsTypeKind.TryGetArrayType(ref compilerArrayType))
+            {
+                bondArrayType = dataTypeTranslator(compilerArrayType);
+            }
+
+            // TODO: Implement additional kinds.
+
             var bondQsTypeKindDetails = qsTypeKind.Tag switch
             {
                 var tag when
@@ -376,8 +391,8 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.ArrayType =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>
                     {
-                        Kind = QsTypeKind.ArrayType
-                        // TODO: Implement ArrayType.
+                        Kind = QsTypeKind.ArrayType,
+                        ArrayType = bondArrayType ?? throw new InvalidOperationException($"ArrayType cannot be null when Kind is {QsTypeKind.ArrayType}")
                     },
                 SyntaxTokens.QsTypeKind<CompilerDataType, CompilerUdtType, CompilerTParamType, CompilerCharacteristicsType>.Tags.Function =>
                     new QsTypeKindDetails<BondDataType, BondUdtType, BondTParamType, BondCharacteristicsType>

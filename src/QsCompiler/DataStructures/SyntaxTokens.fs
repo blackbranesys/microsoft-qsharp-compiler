@@ -83,6 +83,24 @@ type QsTypeKind<'Type,'UdtName,'TParam, 'Characteristics> =
 | MissingType // used (only!) upon determining the type of expressions (for MissingExpr)
 | InvalidType // to be used e.g. for parsing errors
 
+    with
+    member this.TryGetArrayType(arrayType: 'Type byref) =
+        match this with
+        | ArrayType value -> arrayType <- value; true
+        | _ -> false
+    member this.TryGetTupleType(tupleType: ImmutableArray<'Type> byref) =
+        match this with
+        | TupleType value -> tupleType <- value; true
+        | _ -> false
+    member this.TryGetUserDefinedType(userDefinedType: 'UdtName byref) =
+        match this with
+        | UserDefinedType value -> userDefinedType <- value; true
+        | _ -> false
+    member this.TryGetTypeParameter(typeParameter: 'TParam byref) =
+        match this with
+        | TypeParameter value -> typeParameter <- value; true
+        | _ -> false
+
 type QsType = {
     Type : QsTypeKind<QsType, QsSymbol, QsSymbol, Characteristics>
     Range : QsNullable<Range>
