@@ -12,6 +12,7 @@ using Microsoft.Quantum.QsCompiler.DataTypes;
 
 using QsDocumentation = System.Linq.ILookup<Microsoft.Quantum.QsCompiler.DataTypes.NonNullable<string>, System.Collections.Immutable.ImmutableArray<string>>;
 using CompilerResolvedTypeOperation = System.Tuple<System.Tuple<Microsoft.Quantum.QsCompiler.SyntaxTree.ResolvedType, Microsoft.Quantum.QsCompiler.SyntaxTree.ResolvedType>, Microsoft.Quantum.QsCompiler.SyntaxTree.CallableInformation>;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.Quantum.QsCompiler.BondSchemas
 {
@@ -54,7 +55,7 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
         private static CallableInformation ToBondSchema(this SyntaxTree.CallableInformation callableInformation) =>
             new CallableInformation
             {
-                // TODO: Implement Characteristics.
+                Characteristics = callableInformation.Characteristics.ToBondSchema()
                 // TODO: Implement InferredInformation.
             };
 
@@ -62,6 +63,14 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
             new Modifiers
             {
                 Access = modifiers.Access.ToBondSchema()
+            };
+
+        private static OpProperty ToBondSchema(this SyntaxTokens.OpProperty opProperty) =>
+            opProperty.Tag switch
+            {
+                SyntaxTokens.OpProperty.Tags.Adjointable => OpProperty.Adjointable,
+                SyntaxTokens.OpProperty.Tags.Controllable => OpProperty.Controllable,
+                _ => throw new ArgumentException($"Unsupported OpProperty {opProperty}")
             };
 
         private static Position ToBondSchema(this DataTypes.Position position) =>
@@ -268,6 +277,12 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 End = range.End.ToBondSchema()
             };
 
+        private static ResolvedCharacteristics ToBondSchema(this SyntaxTree.ResolvedCharacteristics resolvedCharacteristics) =>
+            new ResolvedCharacteristics
+            {
+                Expression = resolvedCharacteristics.Expression.ToBondSchemaGeneric(ToBondSchema)
+            };
+
         private static ResolvedSignature ToBondSchema(this SyntaxTree.ResolvedSignature resolvedSignature) =>
             new ResolvedSignature
             {
@@ -291,12 +306,65 @@ namespace Microsoft.Quantum.QsCompiler.BondSchemas
                 Range = userDefinedType.Range.IsNull ? null : userDefinedType.Range.Item.ToBondSchema()
             };
 
+        private static CharacteristicsKind ToBondSchemaGeneric<CompilerType>(
+            this SyntaxTokens.CharacteristicsKind<CompilerType> characteristicsKind) =>
+            characteristicsKind.Tag switch
+            {
+                SyntaxTokens.CharacteristicsKind<CompilerType>.Tags.EmptySet => CharacteristicsKind.EmptySet,
+                SyntaxTokens.CharacteristicsKind<CompilerType>.Tags.Intersection => CharacteristicsKind.Intersection,
+                SyntaxTokens.CharacteristicsKind<CompilerType>.Tags.InvalidSetExpr => CharacteristicsKind.InvalidSetExpr,
+                SyntaxTokens.CharacteristicsKind<CompilerType>.Tags.SimpleSet => CharacteristicsKind.SimpleSet,
+                SyntaxTokens.CharacteristicsKind<CompilerType>.Tags.Union => CharacteristicsKind.Union,
+                _ => throw new ArgumentException($"Unsupported CharacteristicsKind {characteristicsKind}")
+            };
+
+        private static CharacteristicsKindDetail<BondType> ToBondSchemaGeneric<BondType, CompilerType>(
+            this SyntaxTokens.CharacteristicsKind<CompilerType> characteristicsKind,
+            Func<CompilerType, BondType> typeTranslator)
+            where BondType : class
+            where CompilerType : class
+        {
+            OpProperty? bondSimpleSet = null;
+            CharacteristicsKindSetOperation<BondType> bondSetOperation = null;
+            SyntaxTokens.OpProperty compilerSimpleSet = null;
+            Tuple<CompilerType, CompilerType> compilerIntersection = null;
+            Tuple<CompilerType, CompilerType> compilerUnion = null;
+            var kind = characteristicsKind.ToBondSchemaGeneric();
+            if (characteristicsKind.TryGetSimpleSet(ref compilerSimpleSet))
+            {
+                bondSimpleSet = compilerSimpleSet.ToBondSchema();
+            }
+            else if (characteristicsKind.TryGetIntersection(ref compilerIntersection))
+            {
+                bondSetOperation = new CharacteristicsKindSetOperation<BondType>
+                {
+                    SetA = typeTranslator(compilerIntersection.Item1),
+                    SetB = typeTranslator(compilerIntersection.Item2)
+                };
+            }
+            else if (characteristicsKind.TryGetUnion(ref compilerUnion))
+            {
+                bondSetOperation = new CharacteristicsKindSetOperation<BondType>
+                {
+                    SetA = typeTranslator(compilerUnion.Item1),
+                    SetB = typeTranslator(compilerUnion.Item2)
+                };
+            }
+
+            return new CharacteristicsKindDetail<BondType>
+            {
+                Kind = kind,
+                SimpleSet = bondSimpleSet,
+                SetOperation = bondSetOperation
+            };
+        }
+
         private static LocalVariableDeclaration<BondType> ToBondSchemaGeneric<BondType, CompilerType>(
             this SyntaxTree.LocalVariableDeclaration<CompilerType> localVariableDeclaration,
-            Func<CompilerType, BondType> toBondSchema) =>
+            Func<CompilerType, BondType> typeTranslator) =>
             new LocalVariableDeclaration<BondType>
             {
-                VariableName = toBondSchema(localVariableDeclaration.VariableName),
+                VariableName = typeTranslator(localVariableDeclaration.VariableName),
                 Type = localVariableDeclaration.Type.ToBondSchema(),
                 // TODO: Implement InferredInformation.
                 Position = localVariableDeclaration.Position.IsNull ?

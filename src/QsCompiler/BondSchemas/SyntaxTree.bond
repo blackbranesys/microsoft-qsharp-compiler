@@ -214,7 +214,17 @@ struct UserDefinedType
 /*
     
 */
-enum CharacteristicsKind {
+enum OpProperty
+{
+    Adjointable,
+    Controllable
+}
+
+/*
+    
+*/
+enum CharacteristicsKind
+{
     EmptySet,
     SimpleSet,
     Union,
@@ -225,11 +235,33 @@ enum CharacteristicsKind {
 /*
     
 */
+struct CharacteristicsKindSetOperation<T>
+{
+    5: required T SetA;
+
+    10: required T SetB;
+}
+
+/*
+    
+*/
+struct CharacteristicsKindDetail<T>
+{
+    5: required CharacteristicsKind Kind = InvalidSetExpr;
+
+    //
+    10: nullable<OpProperty> SimpleSet = nothing;
+
+    //
+    15: nullable<CharacteristicsKindSetOperation<T>> SetOperation = nothing;
+}
+
+/*
+    
+*/
 struct ResolvedCharacteristics
 {
-    5: required CharacteristicsKind Kind = EmptySet;
-
-    // TODO: Implement per 'Kind' fields.
+    5: required CharacteristicsKindDetail<ResolvedCharacteristics> Expression;
 }
 
 /*

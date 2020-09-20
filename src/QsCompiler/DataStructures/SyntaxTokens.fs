@@ -57,6 +57,20 @@ type CharacteristicsKind<'S> =
 | Intersection of 'S * 'S
 | InvalidSetExpr
 
+    with
+    member this.TryGetSimpleSet(simpleSet: OpProperty byref) =
+        match this with
+        | SimpleSet value -> simpleSet <- value; true
+        | _ -> false
+    member this.TryGetUnion(union: ('S * 'S) byref) =
+        match this with
+        | Union(setA , setB) -> union <- (setA, setB); true
+        | _ -> false
+    member this.TryGetIntersection(intersection: ('S * 'S) byref) =
+        match this with
+        | Intersection(setA , setB) -> intersection <- (setA, setB); true
+        | _ -> false
+
 type Characteristics = {
     Characteristics : CharacteristicsKind<Characteristics>
     Range : QsNullable<Range>
